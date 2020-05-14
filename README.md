@@ -86,9 +86,11 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
 
 
 ### setWithBackgoundPermission false
+
 ![alt text](screenshots/simple.gif?raw=true)
  
 ### setWithBackgoundPermission true
+
 ![alt text](screenshots/all_time.gif?raw=true)
 
 
