@@ -105,6 +105,13 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
             
             }
 ```
+            
+* Check GPS is Enabled
+```
+            if(GpsPermission.isGpsEnabled(getApplicationContext())){
+            
+            }
+```
     
 * Request location permission
 ``` 
