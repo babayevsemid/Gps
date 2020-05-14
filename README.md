@@ -89,7 +89,8 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
         * onPauseDisconnect - true;
 ```
  
-### Extra Location permissions
+ 
+## Extra Info
 
 * Check location permission
 ```
