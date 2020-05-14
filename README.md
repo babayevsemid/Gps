@@ -13,6 +13,9 @@ repositories {
 
 dependencies {
     implementation 'com.github.babayevsemid:Gps:0.0.1'
+    
+    //And Play services location
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
 }
 ```
 
@@ -102,6 +105,13 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
 * Check background location permission
 ```
             if(GpsPermission.checkBackgLocation(getApplicationContext())){
+            
+            }
+```
+            
+* Check GPS is Enabled
+```
+            if(GpsPermission.isGpsEnabled(getApplicationContext())){
             
             }
 ```
