@@ -89,19 +89,24 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
         * onPauseDisconnect - true;
 ```
  
-### Location permissions
+### Extra Location permissions
+
+* Check location permission
 ```
-        * Check location permission
             if(GpsPermission.checkLocation(getApplicationContext())){
             
             }
+```
             
-        * Check background location permission
+* Check background location permission
+```
             if(GpsPermission.checkBackgLocation(getApplicationContext())){
             
             }
-             
-        * Request location permission
+```
+    
+* Request location permission
+``` 
              GpsPermission.requestLocation(getApplicationContext())
                 .observeForever(new Observer<Boolean>() {
                     @Override
@@ -114,5 +119,3 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
                     }
                 });
 ```
-
-
