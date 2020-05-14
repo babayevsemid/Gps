@@ -1,0 +1,3 @@
+rootProject.name='GpsCallBack'
+include ':app'
+include ':gps'
