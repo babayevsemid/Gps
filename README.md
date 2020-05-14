@@ -113,8 +113,6 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
                         }
                     }
                 });
-
-
 ```
 
 
