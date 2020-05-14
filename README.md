@@ -87,6 +87,34 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
         * trackingEnabled - false;
         * onResumeConnect - true;
         * onPauseDisconnect - true;
-        ```
+```
+ 
+### Location permissions
+```
+        * Check location permission
+            if(GpsPermission.checkLocation(getApplicationContext())){
+            
+            }
+            
+        * Check background location permission
+            if(GpsPermission.checkBackgLocation(getApplicationContext())){
+            
+            }
+             
+        * Request location permission
+             GpsPermission.requestLocation(getApplicationContext())
+                .observeForever(new Observer<Boolean>() {
+                    @Override
+                    public void onChanged(Boolean aBoolean) {
+                        if(aBoolean){
+                            //Allow
+                        }else{
+                            //Deny
+                        }
+                    }
+                });
+
+
+```
 
 
