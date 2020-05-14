@@ -12,11 +12,11 @@ repositories {
 }
 
 dependencies {
-        compile 'com.github.quentin7b:android-location-tracker:3.2'
+    implementation 'com.github.babayevsemid:Gps:0.0.1'
 }
 ```
 
-### Use
+### Use with AppCompatActivity
 
 ```
 GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
@@ -41,9 +41,39 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
                 .setDistance(1)
                 .setUpdateTime(2000)
                 .setListener(callback)
+                .setTrackingEnabled(true)
                 .setOnResumeConnect(true)
                 .setOnPauseDisconnect(true)
-                .setTrackingEnabled(false)
                 .create();
 ```
+
+### Use with Context
+
+```
+GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
+            @Override
+            public void onNewLocationAvailable(double lat, double lon) {
+                Log.e("onNewLocationAvailable", lat + "," + lon);
+            }
+
+            @Override
+            public void onLastKnownLocation(double lat, double lon) {
+                Log.e("onLastKnownLocation", lat + "," + lon);
+            }
+
+            @Override
+            public void onNotAvailable() {
+                Log.e("onNotAvailable", "onNotAvailable");
+            }
+        };
+
+        new GpsManager.Builder()
+                .setContext(getApplicationContext())
+                .setDistance(1)
+                .setUpdateTime(2000) 
+                .setListener(callback) 
+                .setTrackingEnabled(true)
+                .create();
+```
+
 
