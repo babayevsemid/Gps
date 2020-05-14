@@ -101,7 +101,7 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
         * trackingEnabled - false;
         * onResumeConnect - true;
         * onPauseDisconnect - true;
-        * withBackgoundPermission - true;
+        * withBackgoundPermission - false;
 ```
  
  
