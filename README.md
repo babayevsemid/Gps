@@ -84,6 +84,8 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
                 .create();
 ```
 
+![alt text](screenshots/all_time.jpg?raw=true)
+
 ### Defaults
 ```
         * distance - 10; //10 Meter
