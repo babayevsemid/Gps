@@ -84,7 +84,7 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
                 .create();
 ```
 
-![alt text](screenshots/all_time.jpg?raw=true)
+![alt text](screenshots/all_time.gif?raw=true)
 
 ### Defaults
 ```
