@@ -1,18 +1,16 @@
 package com.semid.gps;
 
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.IntentSender;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
@@ -42,6 +40,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
     private GpsManager.Builder builder;
 
     private boolean canceledPermission;
+    private boolean bgRequestCanceled;
     private boolean requestedSettingPermission;
 
     public GpsConfiguration() {
@@ -55,15 +54,34 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
         return instance;
     }
 
-    public GpsConfiguration(GpsManager.Builder builder) {
-        this.builder = builder;
+    public GpsConfiguration setBuilder(GpsManager.Builder build) {
+        boolean refresh = builder != null;
+        boolean reconnect = false;
 
-        init();
+        builder = build;
 
         if (builder.activity != null)
             builder.activity.getLifecycle().addObserver(this);
         else
+            reconnect = true;
+
+
+        if (refresh) {
+            canceledPermission = false;
+            bgRequestCanceled = false;
+            requestedSettingPermission = false;
+
+            reconnect = true;
+        }
+
+        init();
+
+        if (reconnect) {
+            disConnect();
             connect();
+        }
+
+        return instance;
     }
 
     private void init() {
@@ -89,21 +107,39 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
         if (builder.context == null || !builder.onResumeConnect)
             return;
 
-        if (!isCanceledPermission())
-            if (checkPermissions()) {
+        if (!isCanceledPermission()) {
+            if (GpsPermission.checkLocation(builder.context, builder.withBackgoundPermission) || bgRequestCanceled) {
                 turnGPSOn();
-            } else {
-                GpsPermission.requestLocation(builder.context)
+            } else if (!requestedSettingPermission) {
+                GpsPermission.requestLocation(builder.context, builder.withBackgoundPermission)
                         .observeForever(aBoolean -> {
-                            if (aBoolean)
-                                turnGPSOn();
-                            else {
+                            if (aBoolean) {
+                                if (builder.activity == null)
+                                    turnGPSOn();
+
+                                if (!GpsPermission.checkLocation(builder.context, true)) {
+                                    bgRequestCanceled = true;
+                                    builder.callback.onBackgroundNotAvailable();
+                                }
+                            } else {
                                 canceledPermission = true;
 
-                                builder.callback.onNotAvailable();
+                                checkPermission();
                             }
                         });
+            } else {
+                checkPermission();
             }
+        } else {
+            Log.e("sadasd", "asdasd");
+        }
+    }
+
+    private void checkPermission() {
+        if (!GpsPermission.checkLocation(builder.context, false))
+            builder.callback.onNotAvailable();
+        else
+            builder.callback.onBackgroundNotAvailable();
     }
 
     private void turnGPSOn() {
@@ -114,14 +150,12 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
         if (passive != null)
             builder.callback.onLastKnownLocation(passive.getLatitude(), passive.getLongitude());
 
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+        if (GpsPermission.isGpsEnabled(builder.context)) {
             initGpsTracking();
         } else if (builder.activity != null && !requestedSettingPermission) {
             mSettingsClient
                     .checkLocationSettings(mLocationSettingsRequest)
-                    .addOnSuccessListener(builder.activity, locationSettingsResponse -> {
-                        initGpsTracking();
-                    })
+                    .addOnSuccessListener(builder.activity, locationSettingsResponse -> initGpsTracking())
                     .addOnFailureListener(builder.activity, e -> {
                         int statusCode = ((ApiException) e).getStatusCode();
                         if (statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
@@ -137,6 +171,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
                         }
                     });
         } else {
+            Log.e("sds", "2");
             builder.callback.onNotAvailable();
         }
     }
@@ -146,7 +181,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
         if (locationManager == null)
             locationManager = (LocationManager) builder.context.getSystemService(Context.LOCATION_SERVICE);
 
-        if (GpsPermission.checkLocation(builder.context)) {
+        if (GpsPermission.checkLocation(builder.context, false)) {
             List<String> list = Arrays.asList("gps", "passive", "network");
 
             for (String provider : list) {
@@ -197,7 +232,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
     }
 
     private void initGpsTracking() {
-        if (!checkPermissions())
+        if (!GpsPermission.checkLocation(builder.context, false))
             return;
 
         mGoogleApiClient = new GoogleApiClient.Builder(builder.context)
@@ -212,10 +247,5 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 
     public boolean isCanceledPermission() {
         return canceledPermission;
-    }
-
-    private boolean checkPermissions() {
-        int permissionState = ActivityCompat.checkSelfPermission(builder.context, Manifest.permission.ACCESS_FINE_LOCATION);
-        return permissionState == PackageManager.PERMISSION_GRANTED;
     }
 }

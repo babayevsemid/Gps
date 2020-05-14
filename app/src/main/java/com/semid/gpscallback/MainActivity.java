@@ -2,47 +2,93 @@ package com.semid.gpscallback;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.semid.gps.GpsManager;
+import com.semid.gps.GpsPermission;
 
 public class MainActivity extends AppCompatActivity {
+    private TextView lastLocationTxt, newLocationTxt, gpsTxt;
+    private Button btn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        init();
+        findView();
+
+        gpsIsEnabled();
+    }
+
+    private void findView() {
+        lastLocationTxt = findViewById(R.id.lastLocationTxt);
+        newLocationTxt = findViewById(R.id.newLocationTxt);
+        gpsTxt = findViewById(R.id.gpsTxt);
+        btn = findViewById(R.id.btn);
+
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getLocation();
+            }
+        });
     }
 
 
-    private void init() {
+    private void getLocation() {
         GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
             @Override
             public void onNewLocationAvailable(double lat, double lon) {
-                Log.e("lat,lon", lat + "");
+                Log.e("onNewLocationAvailable",lat+","+lon);
+
+                newLocationTxt.setText("New location : " + lat + "," + lon);
             }
 
             @Override
             public void onLastKnownLocation(double lat, double lon) {
-                Log.e("onLastKnownLocation", lat +"");
+                Log.e("onLastKnownLocation",lat+","+lon);
+
+                lastLocationTxt.setText("Last known location : " + lat + "," + lon);
+            }
+
+            @Override
+            public void onBackgroundNotAvailable() {
+                Log.e("onBackgroundNotAv","onBackgroundNotAvailable");
             }
 
             @Override
             public void onNotAvailable() {
-                Log.e("onNotAvailable", "onNotAvailable");
+                Log.e("onNotAvailable","onNotAvailable");
             }
         };
 
         new GpsManager.Builder()
-                .setActivity(this)
+                .setContext(getApplicationContext())
                 .setDistance(1)
                 .setListener(callback)
                 .setOnResumeConnect(true)
-                .setTrackingEnabled(false)
+                .setTrackingEnabled(true)
+                .setWithBackgoundPermission(true)
                 .setUpdateTime(2000)
                 .create();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        gpsIsEnabled();
+    }
+
+    private void gpsIsEnabled() {
+        if (GpsPermission.isGpsEnabled(getApplicationContext()))
+            gpsTxt.setText("Gps status : enabled");
+        else
+            gpsTxt.setText("Gps status : disabled");
     }
 }

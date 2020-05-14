@@ -19,6 +19,7 @@ public class GpsManager {
         boolean trackingEnabled;
         boolean onResumeConnect = true;
         boolean onPauseDisconnect = true;
+        boolean withBackgoundPermission = false;
 
         public Builder() {
         }
@@ -49,6 +50,12 @@ public class GpsManager {
             this.onResumeConnect = onResumeConnect;
             return this;
         }
+
+        public Builder setWithBackgoundPermission(boolean withBackgoundPermission) {
+            this.withBackgoundPermission = withBackgoundPermission;
+            return this;
+        }
+
 
         public Builder setOnPauseDisconnect(boolean onPauseDisconnect) {
             this.onPauseDisconnect = onPauseDisconnect;
@@ -82,20 +89,27 @@ public class GpsManager {
                 }
             }
 
-            return new GpsConfiguration(Builder.this);
+            GpsConfiguration configuration = GpsConfiguration.getInstance()
+                    .setBuilder(Builder.this);
+
+            return configuration;
         }
     }
 
     public static abstract class LocationCallback {
-       public void onNewLocationAvailable(double lat, double lon){
+        public void onNewLocationAvailable(double lat, double lon) {
 
         }
 
-        public void onLastKnownLocation(double lat, double lon){
+        public void onLastKnownLocation(double lat, double lon) {
 
         }
 
-        public void onNotAvailable(){
+        public void onBackgroundNotAvailable() {
+
+        }
+
+        public void onNotAvailable() {
 
         }
     }

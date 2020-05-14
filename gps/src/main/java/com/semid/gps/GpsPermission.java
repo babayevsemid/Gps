@@ -6,7 +6,6 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.lifecycle.MutableLiveData;
 
 import com.karumi.dexter.Dexter;
@@ -20,27 +19,19 @@ import java.util.List;
 
 public class GpsPermission {
 
-    public static boolean checkBackgLocation(Context context) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            int bgLocation = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION);
-            return checkLocation(context) && bgLocation == PackageManager.PERMISSION_GRANTED;
-        } else {
-            return checkLocation(context);
-        }
-    }
 
-    public static boolean checkLocation(Context context) {
-        boolean permissionAccessFINE = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-        boolean permissionAccessCOARSE = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    public static boolean checkLocation(Context context, boolean withBackground) {
+        boolean fine = checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION);
+        boolean coarse = checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
 
-        if (permissionAccessFINE && permissionAccessCOARSE) {
-            LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        if (fine && coarse) {
 
-            if (locationManager != null) {
-                return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-            } else
-                return false;
+            boolean bgLocationIsAllow = true;
 
+            if (withBackground && aboveAndroidQ())
+                bgLocationIsAllow = checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+
+            return bgLocationIsAllow;
         } else
             return false;
     }
@@ -54,15 +45,15 @@ public class GpsPermission {
             return false;
     }
 
-    public static MutableLiveData<Boolean> requestLocation(Context context) {
+    public static MutableLiveData<Boolean> requestLocation(Context context, boolean withBackground) {
         final MutableLiveData<Boolean> liveData = new MutableLiveData<>();
 
-        if (!checkLocation(context)) {
+        if (!checkLocation(context, withBackground)) {
             ArrayList<String> list = new ArrayList<>();
             list.add(Manifest.permission.ACCESS_FINE_LOCATION);
             list.add(Manifest.permission.ACCESS_COARSE_LOCATION);
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q)
+            if (aboveAndroidQ() && withBackground)
                 list.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
 
             Dexter.withContext(context)
@@ -70,6 +61,14 @@ public class GpsPermission {
                     .withListener(new MultiplePermissionsListener() {
                         @Override
                         public void onPermissionsChecked(MultiplePermissionsReport multiplePermissionsReport) {
+
+                            if (multiplePermissionsReport.getDeniedPermissionResponses().size() == 1) {
+                                if (multiplePermissionsReport.getDeniedPermissionResponses().get(0).getPermissionName().contains("ACCESS_BACKGROUND_LOCATION")) {
+                                    liveData.postValue(true);
+                                    return;
+                                }
+                            }
+
                             liveData.postValue(multiplePermissionsReport.areAllPermissionsGranted());
                         }
 
@@ -82,5 +81,13 @@ public class GpsPermission {
             liveData.postValue(true);
 
         return liveData;
+    }
+
+    public static boolean aboveAndroidQ() {
+        return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q;
+    }
+
+    private static boolean checkSelfPermission(Context context, String permission) {
+        return ActivityCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
     }
 }
