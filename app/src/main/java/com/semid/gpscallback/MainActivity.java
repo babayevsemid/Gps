@@ -68,13 +68,14 @@ public class MainActivity extends AppCompatActivity {
         };
 
         new GpsManager.Builder()
-                .setContext(getApplicationContext())
+                .setActivity(this)
                 .setDistance(1)
+                .setUpdateTime(2000)
                 .setListener(callback)
                 .setOnResumeConnect(true)
+                .setOnPauseDisconnect(true)
                 .setTrackingEnabled(true)
                 .setWithBackgoundPermission(true)
-                .setUpdateTime(2000)
                 .create();
     }
 

@@ -89,7 +89,7 @@ public class GpsManager {
                 }
             }
 
-            GpsConfiguration configuration = GpsConfiguration.getInstance()
+            GpsConfiguration configuration = GpsConfiguration.getInstance(activity)
                     .setBuilder(Builder.this);
 
             return configuration;

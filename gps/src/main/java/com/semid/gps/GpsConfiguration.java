@@ -11,6 +11,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
@@ -47,8 +48,8 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 
     }
 
-    public static GpsConfiguration getInstance() {
-        if (instance == null)
+    public static GpsConfiguration getInstance(AppCompatActivity activity) {
+        if (instance == null || activity != instance.builder.activity)
             instance = new GpsConfiguration();
 
         return instance;

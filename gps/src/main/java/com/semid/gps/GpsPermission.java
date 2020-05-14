@@ -18,8 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GpsPermission {
-
-
     public static boolean checkLocation(Context context, boolean withBackground) {
         boolean fine = checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION);
         boolean coarse = checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
