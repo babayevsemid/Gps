@@ -18,7 +18,7 @@ dependencies {
 
 ### Use with AppCompatActivity
 
-Note: Works if GPS is active, if GPS is not active requesting permission GPS and works
+Note: It works if location permission is active, if it is not, try to give permission
 
 ```
 GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
