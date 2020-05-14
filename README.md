@@ -46,9 +46,10 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
                 .setDistance(1)
                 .setUpdateTime(2000)
                 .setListener(callback)
-                .setTrackingEnabled(true)
                 .setOnResumeConnect(true)
                 .setOnPauseDisconnect(true)
+                .setTrackingEnabled(true)
+                .setWithBackgoundPermission(false)
                 .create();
 ```
 
@@ -90,6 +91,7 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
         * trackingEnabled - false;
         * onResumeConnect - true;
         * onPauseDisconnect - true;
+        * withBackgoundPermission - true;
 ```
  
  
@@ -97,20 +99,24 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
 
 * Check location permission
 ```
-            if(GpsPermission.checkLocation(getApplicationContext())){
+            if(GpsPermission.checkLocation(getApplicationContext(), false)){
             
             }
 ```
             
 * Check background location permission
 ```
-            if(GpsPermission.checkBackgLocation(getApplicationContext())){
+        //boolean checkLocation(Context context, boolean withBackground)
+
+            if(GpsPermission.checkLocation(getApplicationContext(), true)){
             
             }
 ```
             
 * Check GPS is Enabled
 ```
+        //boolean isGpsEnabled(Context context)
+            
             if(GpsPermission.isGpsEnabled(getApplicationContext())){
             
             }
@@ -118,7 +124,9 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
     
 * Request location permission
 ``` 
-             GpsPermission.requestLocation(getApplicationContext())
+        //MutableLiveData<Boolean> requestLocation(Context context, boolean withBackground)
+
+             GpsPermission.requestLocation(getApplicationContext(),false)
                 .observeForever(new Observer<Boolean>() {
                     @Override
                     public void onChanged(Boolean aBoolean) {
