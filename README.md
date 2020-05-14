@@ -81,10 +81,10 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
 ```
 
 ### Defaults
-        * int distance = 10; //Meter
-        * int updateTime = 2000;
-        * boolean trackingEnabled = false;
-        * boolean onResumeConnect = true;
-        * boolean onPauseDisconnect = true;
+        * distance - 10; //Meter
+        * updateTime - 2000; //2 sec
+        * trackingEnabled - false;
+        * onResumeConnect - true;
+        * onPauseDisconnect - true;
 
 
