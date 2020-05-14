@@ -29,21 +29,30 @@ public class GpsPermission {
         }
     }
 
-	public static boolean checkLocation(Context context) {
-		boolean permissionAccessFINE = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-		boolean permissionAccessCOARSE = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    public static boolean checkLocation(Context context) {
+        boolean permissionAccessFINE = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        boolean permissionAccessCOARSE = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
-		if (permissionAccessFINE && permissionAccessCOARSE) {
-			LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        if (permissionAccessFINE && permissionAccessCOARSE) {
+            LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
-			if (locationManager != null) {
-				return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-			} else
-				return false;
+            if (locationManager != null) {
+                return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            } else
+                return false;
 
-		} else
-			return false;
-	}
+        } else
+            return false;
+    }
+
+    public static boolean isGpsEnabled(Context context) {
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        if (locationManager != null)
+            return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        else
+            return false;
+    }
 
     public static MutableLiveData<Boolean> requestLocation(Context context) {
         final MutableLiveData<Boolean> liveData = new MutableLiveData<>();
