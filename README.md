@@ -18,7 +18,7 @@ dependencies {
 
 ### Use with AppCompatActivity
 
-Note: It works if location permission is active, if it is not, try to give permission
+Note: Returns location if GPS is active, otherwise will prompt to enable it and return consequently
 
 ```
 GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
@@ -51,7 +51,7 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
 
 ### Use with Context
 
-Note: Works if GPS is active, otherwise not works
+Note: Works if GPS is active, otherwise will not function
 
 ```
 GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
