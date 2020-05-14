@@ -18,6 +18,8 @@ dependencies {
 
 ### Use with AppCompatActivity
 
+Note: Works if GPS is active, if GPS is not active requesting permission GPS and works
+
 ```
 GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
             @Override
@@ -48,6 +50,8 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
 ```
 
 ### Use with Context
+
+Note: Works if GPS is active, otherwise not works
 
 ```
 GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
