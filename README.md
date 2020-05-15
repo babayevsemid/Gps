@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.babayevsemid:Gps:1.0.0'
+    implementation 'com.github.babayevsemid:Gps:1.0.1'
     
     //And Play services location
     implementation 'com.google.android.gms:play-services-location:17.0.0'
@@ -101,7 +101,15 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
         * trackingEnabled - false;
         * onResumeConnect - true;
         * onPauseDisconnect - true;
-        * withBackgoundPermission - false;
+        * withBackgroundPermission - false;
+```
+
+### Last getted location
+
+* This will change when you get a location and you can use it anywhere
+       
+```
+       GpsManager.location;
 ```
  
  
