@@ -61,9 +61,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 
         builder = build;
 
-        if (builder.activity != null)
-            builder.activity.getLifecycle().addObserver(this);
-        else
+        if (builder.activity == null)
             reconnect = true;
 
 
@@ -81,6 +79,9 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
             disConnect();
             connect();
         }
+
+        if (builder.activity != null)
+            builder.activity.getLifecycle().addObserver(this);
 
         return instance;
     }
@@ -109,10 +110,10 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
             return;
 
         if (!isCanceledPermission()) {
-            if (GpsPermission.checkLocation(builder.context, builder.withBackgoundPermission) || bgRequestCanceled) {
+            if (GpsPermission.checkLocation(builder.context, builder.withBackgroundPermission) || bgRequestCanceled) {
                 turnGPSOn();
             } else if (!requestedSettingPermission) {
-                GpsPermission.requestLocation(builder.context, builder.withBackgoundPermission)
+                GpsPermission.requestLocation(builder.context, builder.withBackgroundPermission)
                         .observeForever(aBoolean -> {
                             if (aBoolean) {
                                 if (builder.activity == null)
@@ -148,8 +149,10 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
             return;
 
         Location passive = getLastKnownLocation();
-        if (passive != null)
+        if (passive != null) {
+            GpsManager.setLocation(passive);
             builder.callback.onLastKnownLocation(passive.getLatitude(), passive.getLongitude());
+        }
 
         if (GpsPermission.isGpsEnabled(builder.context)) {
             initGpsTracking();
@@ -217,8 +220,10 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 
     @Override
     public void onLocationChanged(Location location) {
-        if (location != null)
+        if (location != null) {
+            GpsManager.setLocation(location);
             builder.callback.onNewLocationAvailable(location.getLatitude(), location.getLongitude());
+        }
 
         if (!builder.trackingEnabled)
             disConnect();

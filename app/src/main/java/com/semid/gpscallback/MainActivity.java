@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                 .setOnResumeConnect(true)
                 .setOnPauseDisconnect(true)
                 .setTrackingEnabled(true)
-                .setWithBackgoundPermission(true)
+                .setWithBackgroundPermission(true)
                 .create();
     }
 
