@@ -117,42 +117,51 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
 
 * Check location permission
 ```
-            if(GpsPermission.checkLocation(getApplicationContext(), false)){
+        if(GpsPermission.checkLocation(getApplicationContext(), false)){
             
-            }
+        }
 ```
             
 * Check background location permission
 ```
         //boolean checkLocation(Context context, boolean withBackground)
 
-            if(GpsPermission.checkLocation(getApplicationContext(), true)){
+        if(GpsPermission.checkLocation(getApplicationContext(), true)){
             
-            }
+        }
 ```
             
 * Check GPS is Enabled
 ```
         //boolean isGpsEnabled(Context context)
             
-            if(GpsPermission.isGpsEnabled(getApplicationContext())){
+        if(GpsPermission.isGpsEnabled(getApplicationContext())){
             
-            }
+        }
+```
+         
+* Full Check location and gps is Enabled
+```
+        //boolean isGpsEnabled(Context context)
+            
+        if(GpsPermission.checkLocation(getApplicationContext(), false) && GpsPermission.isGpsEnabled(getApplicationContext()){
+            
+        }
 ```
     
 * Request location permission
 ``` 
         //MutableLiveData<Boolean> requestLocation(Context context, boolean withBackground)
 
-             GpsPermission.requestLocation(getApplicationContext(),false)
-                .observeForever(new Observer<Boolean>() {
-                    @Override
-                    public void onChanged(Boolean aBoolean) {
-                        if(aBoolean){
-                            //Allow
-                        }else{
-                            //Deny
-                        }
+         GpsPermission.requestLocation(getApplicationContext(),false)
+            .observeForever(new Observer<Boolean>() {
+                @Override
+                public void onChanged(Boolean aBoolean) {
+                    if(aBoolean){
+                        //Allow
+                    }else{
+                        //Deny
                     }
-                });
+                }
+            });
 ```
