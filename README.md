@@ -49,7 +49,7 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
                 .setOnResumeConnect(true)
                 .setOnPauseDisconnect(true)
                 .setTrackingEnabled(true)
-                .setWithBackgoundPermission(false)
+                .setWithBackgroundPermission(false)
                 .create();
 ```
 
