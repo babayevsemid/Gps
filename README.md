@@ -140,11 +140,10 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
         }
 ```
          
-* Full Check location and gps is Enabled
-```
-        //boolean isGpsEnabled(Context context)
-            
-        if(GpsPermission.checkLocation(getApplicationContext(), false) && GpsPermission.isGpsEnabled(getApplicationContext()){
+* Full check location and gps is Enabled
+```         
+        if(GpsPermission.checkLocation(getApplicationContext(), false) 
+                && GpsPermission.isGpsEnabled(getApplicationContext()){
             
         }
 ```
