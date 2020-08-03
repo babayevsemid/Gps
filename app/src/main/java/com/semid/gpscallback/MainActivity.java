@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void gpsIsEnabled() {
-        if (GpsPermission.isGpsEnabled(getApplicationContext()))
+        if (GpsPermission.checkFullLocation(getApplicationContext(),false))
             gpsTxt.setText("Gps status : enabled");
         else
             gpsTxt.setText("Gps status : disabled");

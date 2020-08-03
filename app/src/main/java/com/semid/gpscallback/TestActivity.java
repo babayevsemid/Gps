@@ -46,10 +46,10 @@ public class TestActivity extends AppCompatActivity {
                     .setDistance(1)
                     .setUpdateTime(2000)
                     .setListener(callback)
-                    .setOnResumeConnect(true)
-                    .setOnPauseDisconnect(true)
-                    .setTrackingEnabled(true)
-                    .setWithBackgoundPermission(true)
+                    .setOnResumeConnect(false)
+                    .setOnPauseDisconnect(false)
+                    .setTrackingEnabled(false)
+                    .setWithBackgroundPermission(false)
                     .create();
         }
 }

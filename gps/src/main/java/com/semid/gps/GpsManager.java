@@ -2,24 +2,26 @@ package com.semid.gps;
 
 import android.content.Context;
 import android.location.Location;
+import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.MutableLiveData;
 
 public class GpsManager {
+	private static Handler handler = new Handler();
 	public static Location location;
 
 	public GpsManager() {
 
 	}
 
-    public static void setLocation(Location location) {
-        GpsManager.location = location;
-    }
+	public static void setLocation(Location location) {
+		GpsManager.location = location;
+	}
 
-    public static class Builder {
+	public static class Builder {
+		static Builder instance;
+		static AppCompatActivity activity;
 		LocationCallback callback;
-		AppCompatActivity activity;
 		Context context;
 		int distance = 10;
 		int updateTime = 2000;
@@ -37,7 +39,7 @@ public class GpsManager {
 		}
 
 		public Builder setActivity(AppCompatActivity activity) {
-			this.activity = activity;
+			Builder.activity = activity;
 			this.context = activity.getApplicationContext();
 
 			return this;
@@ -79,7 +81,7 @@ public class GpsManager {
 			return this;
 		}
 
-		public GpsConfiguration create() {
+		public void create() {
 			if (this.context == null) {
 				try {
 					throw new Exception("Context needs to be passed in");
@@ -96,12 +98,16 @@ public class GpsManager {
 				}
 			}
 
-			GpsConfiguration configuration = GpsConfiguration.getInstance(activity)
-					.setBuilder(Builder.this);
-
-			return configuration;
+			Builder.instance = this;
+			handler.removeCallbacks(runnable);
+			handler.postDelayed(runnable, 300);
 		}
 	}
+
+	static Runnable runnable = () -> {
+		GpsConfiguration.getInstance(Builder.activity)
+				.setBuilder(Builder.instance);
+	};
 
 	public static abstract class LocationCallback {
 		public void onNewLocationAvailable(double lat, double lon) {

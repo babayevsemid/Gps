@@ -31,227 +31,233 @@ import java.util.Arrays;
 import java.util.List;
 
 public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
-    private LocationSettingsRequest mLocationSettingsRequest;
-    private SettingsClient mSettingsClient;
-    private LocationManager locationManager;
-    private LocationRequest locationRequest;
-    private GoogleApiClient mGoogleApiClient;
-    private static GpsConfiguration instance;
+	private LocationSettingsRequest mLocationSettingsRequest;
+	private SettingsClient mSettingsClient;
+	private LocationManager locationManager;
+	private LocationRequest locationRequest;
+	private GoogleApiClient mGoogleApiClient;
+	private static GpsConfiguration instance;
 
-    private GpsManager.Builder builder;
+	private GpsManager.Builder builder;
 
-    private boolean canceledPermission;
-    private boolean bgRequestCanceled;
-    private boolean requestedSettingPermission;
+	private boolean canceledPermission;
+	private boolean bgRequestCanceled;
+	private boolean requestedSettingPermission;
 
-    public GpsConfiguration() {
+	private int requestCount = 0;
 
-    }
+	public GpsConfiguration() {
 
-    public static GpsConfiguration getInstance(AppCompatActivity activity) {
-        if (instance == null || activity != instance.builder.activity)
-            instance = new GpsConfiguration();
+	}
 
-        return instance;
-    }
+	public static GpsConfiguration getInstance(AppCompatActivity activity) {
+		if (instance == null || activity != instance.builder.activity)
+			instance = new GpsConfiguration();
 
-    public GpsConfiguration setBuilder(GpsManager.Builder build) {
-        boolean refresh = builder != null;
-        boolean reconnect = false;
+		return instance;
+	}
 
-        builder = build;
+	public GpsConfiguration setBuilder(GpsManager.Builder build) {
+		boolean refresh = builder != null;
+		boolean reconnect = false;
 
-        if (builder.activity == null)
-            reconnect = true;
+		builder = build;
 
+		if (builder.activity == null)
+			reconnect = true;
 
-        if (refresh) {
-            canceledPermission = false;
-            bgRequestCanceled = false;
-            requestedSettingPermission = false;
+		if (refresh) {
+			requestCount = 0;
+			canceledPermission = false;
+			bgRequestCanceled = false;
+			requestedSettingPermission = false;
 
-            reconnect = true;
-        }
+			reconnect = true;
+		}
 
-        init();
+		init();
 
-        if (reconnect) {
-            disConnect();
-            connect();
-        }
+		if (reconnect) {
+			disConnect();
+			connect();
+		}
 
-        if (builder.activity != null)
-            builder.activity.getLifecycle().addObserver(this);
+		if (builder.activity != null)
+			builder.activity.getLifecycle().addObserver(this);
 
-        return instance;
-    }
+		return instance;
+	}
 
-    private void init() {
-        locationManager = (LocationManager) builder.context.getSystemService(Context.LOCATION_SERVICE);
-        mSettingsClient = LocationServices.getSettingsClient(builder.context);
-        locationRequest = LocationRequest.create();
+	private void init() {
+		locationManager = (LocationManager) builder.context.getSystemService(Context.LOCATION_SERVICE);
+		mSettingsClient = LocationServices.getSettingsClient(builder.context);
+		locationRequest = LocationRequest.create();
 
-        locationRequest.setSmallestDisplacement(builder.distance);
-        locationRequest.setInterval(builder.updateTime);
-        locationRequest.setFastestInterval(builder.updateTime);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+		locationRequest.setSmallestDisplacement(builder.distance);
+		locationRequest.setInterval(builder.updateTime);
+		locationRequest.setFastestInterval(builder.updateTime);
+		locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(locationRequest);
+		LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+				.addLocationRequest(locationRequest);
 
-        mLocationSettingsRequest = builder.build();
+		mLocationSettingsRequest = builder.build();
 
-        builder.setAlwaysShow(true);
-    }
+		builder.setAlwaysShow(true);
+	}
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    public void connect() {
-        if (builder.context == null || !builder.onResumeConnect)
-            return;
+	@OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+	public void connect() {
+		if (!builder.onResumeConnect && requestCount > 0)
+			return;
 
-        if (!isCanceledPermission()) {
-            if (GpsPermission.checkLocation(builder.context, builder.withBackgroundPermission) || bgRequestCanceled) {
-                turnGPSOn();
-            } else if (!requestedSettingPermission) {
-                GpsPermission.requestLocation(builder.context, builder.withBackgroundPermission)
-                        .observeForever(aBoolean -> {
-                            if (aBoolean) {
-                                if (builder.activity == null)
-                                    turnGPSOn();
+		if (builder.context == null)
+			return;
 
-                                if (!GpsPermission.checkLocation(builder.context, true)) {
-                                    bgRequestCanceled = true;
-                                    builder.callback.onBackgroundNotAvailable();
-                                }
-                            } else {
-                                canceledPermission = true;
+		if (!isCanceledPermission()) {
+			if (GpsPermission.checkLocation(builder.context, builder.withBackgroundPermission) || bgRequestCanceled) {
+				turnGPSOn();
+			} else if (!requestedSettingPermission) {
+				GpsPermission.requestLocation(builder.context, builder.withBackgroundPermission)
+						.observeForever(aBoolean -> {
+							if (aBoolean) {
+								if (builder.activity == null)
+									turnGPSOn();
 
-                                checkPermission();
-                            }
-                        });
-            } else {
-                checkPermission();
-            }
-        } else {
-            Log.e("sadasd", "asdasd");
-        }
-    }
+								if (!GpsPermission.checkLocation(builder.context, true)) {
+									bgRequestCanceled = true;
+									builder.callback.onBackgroundNotAvailable();
+								}
+							} else {
+								canceledPermission = true;
 
-    private void checkPermission() {
-        if (!GpsPermission.checkLocation(builder.context, false))
-            builder.callback.onNotAvailable();
-        else
-            builder.callback.onBackgroundNotAvailable();
-    }
+								checkPermission();
+							}
+						});
+			} else {
+				checkPermission();
+			}
+		} else {
 
-    private void turnGPSOn() {
-        if (builder.context == null)
-            return;
+		}
+	}
 
-        Location passive = getLastKnownLocation();
-        if (passive != null) {
-            GpsManager.setLocation(passive);
-            builder.callback.onLastKnownLocation(passive.getLatitude(), passive.getLongitude());
-        }
+	private void checkPermission() {
+		if (!GpsPermission.checkLocation(builder.context, false))
+			builder.callback.onNotAvailable();
+		else
+			builder.callback.onBackgroundNotAvailable();
+	}
 
-        if (GpsPermission.isGpsEnabled(builder.context)) {
-            initGpsTracking();
-        } else if (builder.activity != null && !requestedSettingPermission) {
-            mSettingsClient
-                    .checkLocationSettings(mLocationSettingsRequest)
-                    .addOnSuccessListener(builder.activity, locationSettingsResponse -> initGpsTracking())
-                    .addOnFailureListener(builder.activity, e -> {
-                        int statusCode = ((ApiException) e).getStatusCode();
-                        if (statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
-                            try {
-                                ResolvableApiException rae = (ResolvableApiException) e;
-                                rae.startResolutionForResult(builder.activity, 111);
+	private void turnGPSOn() {
+		if (builder.context == null)
+			return;
 
-                                requestedSettingPermission = true;
-                            } catch (IntentSender.SendIntentException ignored) {
-                            }
-                        } else {
-                            canceledPermission = true;
-                        }
-                    });
-        } else {
-            Log.e("sds", "2");
-            builder.callback.onNotAvailable();
-        }
-    }
+		Location passive = getLastKnownLocation();
+		if (passive != null) {
+			GpsManager.setLocation(passive);
+			builder.callback.onLastKnownLocation(passive.getLatitude(), passive.getLongitude());
+		}
 
-    @SuppressLint("MissingPermission")
-    public Location getLastKnownLocation() {
-        if (locationManager == null)
-            locationManager = (LocationManager) builder.context.getSystemService(Context.LOCATION_SERVICE);
+		if (GpsPermission.isGpsEnabled(builder.context)) {
+			initGpsTracking();
+		} else if (builder.activity != null && !requestedSettingPermission) {
+			mSettingsClient
+					.checkLocationSettings(mLocationSettingsRequest)
+					.addOnSuccessListener(builder.activity, locationSettingsResponse -> initGpsTracking())
+					.addOnFailureListener(builder.activity, e -> {
+						int statusCode = ((ApiException) e).getStatusCode();
+						if (statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
+							try {
+								ResolvableApiException rae = (ResolvableApiException) e;
+								rae.startResolutionForResult(builder.activity, 111);
 
-        if (GpsPermission.checkLocation(builder.context, false)) {
-            List<String> list = Arrays.asList("gps", "passive", "network");
+								requestedSettingPermission = true;
+							} catch (IntentSender.SendIntentException ignored) {
+							}
+						} else {
+							canceledPermission = true;
+						}
+					});
+		} else {
+			builder.callback.onNotAvailable();
+		}
+	}
 
-            for (String provider : list) {
-                Location location = locationManager.getLastKnownLocation(provider);
-                if (location != null)
-                    return location;
-            }
+	@SuppressLint("MissingPermission")
+	public Location getLastKnownLocation() {
+		if (locationManager == null)
+			locationManager = (LocationManager) builder.context.getSystemService(Context.LOCATION_SERVICE);
 
-            return null;
-        } else
-            return null;
-    }
+		if (GpsPermission.checkLocation(builder.context, false)) {
+			List<String> list = Arrays.asList("gps", "passive", "network");
 
-    @SuppressLint("MissingPermission")
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        try {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
-        } catch (Exception ignored) {
-        }
-    }
+			for (String provider : list) {
+				Location location = locationManager.getLastKnownLocation(provider);
+				if (location != null)
+					return location;
+			}
 
-    @Override
-    public void onConnectionSuspended(int i) {
+			return null;
+		} else
+			return null;
+	}
 
-    }
+	@SuppressLint("MissingPermission")
+	@Override
+	public void onConnected(@Nullable Bundle bundle) {
+		try {
+			LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
+		} catch (Exception ignored) {
+		}
+	}
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+	@Override
+	public void onConnectionSuspended(int i) {
 
-    }
+	}
 
-    @Override
-    public void onLocationChanged(Location location) {
-        if (location != null) {
-            GpsManager.setLocation(location);
-            builder.callback.onNewLocationAvailable(location.getLatitude(), location.getLongitude());
-        }
+	@Override
+	public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
-        if (!builder.trackingEnabled)
-            disConnect();
-    }
+	}
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    public void disConnect() {
-        if (builder.onPauseDisconnect)
-            if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
-                mGoogleApiClient.disconnect();
-            }
-    }
+	@Override
+	public void onLocationChanged(Location location) {
+		if (location != null) {
+			requestCount++;
 
-    private void initGpsTracking() {
-        if (!GpsPermission.checkLocation(builder.context, false))
-            return;
+			GpsManager.setLocation(location);
+			builder.callback.onNewLocationAvailable(location.getLatitude(), location.getLongitude());
+		}
 
-        mGoogleApiClient = new GoogleApiClient.Builder(builder.context)
-                .addOnConnectionFailedListener(this)
-                .addConnectionCallbacks(this)
-                .addApi(LocationServices.API)
-                .build();
+		if (!builder.trackingEnabled)
+			disConnect();
+	}
 
-        if (!mGoogleApiClient.isConnected())
-            mGoogleApiClient.connect();
-    }
+	@OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+	public void disConnect() {
+		if (builder.onPauseDisconnect)
+			if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+				mGoogleApiClient.disconnect();
+			}
+	}
 
-    public boolean isCanceledPermission() {
-        return canceledPermission;
-    }
+	private void initGpsTracking() {
+		if (!GpsPermission.checkLocation(builder.context, false))
+			return;
+
+		mGoogleApiClient = new GoogleApiClient.Builder(builder.context)
+				.addOnConnectionFailedListener(this)
+				.addConnectionCallbacks(this)
+				.addApi(LocationServices.API)
+				.build();
+
+		if (!mGoogleApiClient.isConnected())
+			mGoogleApiClient.connect();
+	}
+
+	public boolean isCanceledPermission() {
+		return canceledPermission;
+	}
 }

@@ -18,74 +18,78 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GpsPermission {
-    public static boolean checkLocation(Context context, boolean withBackground) {
-        boolean fine = checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION);
-        boolean coarse = checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
+	public static boolean checkFullLocation(Context context, boolean withBackground) {
+		return checkLocation(context, withBackground) && isGpsEnabled(context);
+	}
 
-        if (fine && coarse) {
+	public static boolean checkLocation(Context context, boolean withBackground) {
+		boolean fine = checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION);
+		boolean coarse = checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
 
-            boolean bgLocationIsAllow = true;
+		if (fine && coarse) {
 
-            if (withBackground && aboveAndroidQ())
-                bgLocationIsAllow = checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+			boolean bgLocationIsAllow = true;
 
-            return bgLocationIsAllow;
-        } else
-            return false;
-    }
+			if (withBackground && aboveAndroidQ())
+				bgLocationIsAllow = checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION);
 
-    public static boolean isGpsEnabled(Context context) {
-        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+			return bgLocationIsAllow;
+		} else
+			return false;
+	}
 
-        if (locationManager != null)
-            return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        else
-            return false;
-    }
+	public static boolean isGpsEnabled(Context context) {
+		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
-    public static MutableLiveData<Boolean> requestLocation(Context context, boolean withBackground) {
-        final MutableLiveData<Boolean> liveData = new MutableLiveData<>();
+		if (locationManager != null)
+			return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+		else
+			return false;
+	}
 
-        if (!checkLocation(context, withBackground)) {
-            ArrayList<String> list = new ArrayList<>();
-            list.add(Manifest.permission.ACCESS_FINE_LOCATION);
-            list.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+	public static MutableLiveData<Boolean> requestLocation(Context context, boolean withBackground) {
+		final MutableLiveData<Boolean> liveData = new MutableLiveData<>();
 
-            if (aboveAndroidQ() && withBackground)
-                list.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+		if (!checkLocation(context, withBackground)) {
+			ArrayList<String> list = new ArrayList<>();
+			list.add(Manifest.permission.ACCESS_FINE_LOCATION);
+			list.add(Manifest.permission.ACCESS_COARSE_LOCATION);
 
-            Dexter.withContext(context)
-                    .withPermissions(list)
-                    .withListener(new MultiplePermissionsListener() {
-                        @Override
-                        public void onPermissionsChecked(MultiplePermissionsReport multiplePermissionsReport) {
+			if (aboveAndroidQ() && withBackground)
+				list.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
 
-                            if (multiplePermissionsReport.getDeniedPermissionResponses().size() == 1) {
-                                if (multiplePermissionsReport.getDeniedPermissionResponses().get(0).getPermissionName().contains("ACCESS_BACKGROUND_LOCATION")) {
-                                    liveData.postValue(true);
-                                    return;
-                                }
-                            }
+			Dexter.withContext(context)
+					.withPermissions(list)
+					.withListener(new MultiplePermissionsListener() {
+						@Override
+						public void onPermissionsChecked(MultiplePermissionsReport multiplePermissionsReport) {
 
-                            liveData.postValue(multiplePermissionsReport.areAllPermissionsGranted());
-                        }
+							if (multiplePermissionsReport.getDeniedPermissionResponses().size() == 1) {
+								if (multiplePermissionsReport.getDeniedPermissionResponses().get(0).getPermissionName().contains("ACCESS_BACKGROUND_LOCATION")) {
+									liveData.postValue(true);
+									return;
+								}
+							}
 
-                        @Override
-                        public void onPermissionRationaleShouldBeShown(List<PermissionRequest> list, PermissionToken permissionToken) {
-                            permissionToken.continuePermissionRequest();
-                        }
-                    }).check();
-        } else
-            liveData.postValue(true);
+							liveData.postValue(multiplePermissionsReport.areAllPermissionsGranted());
+						}
 
-        return liveData;
-    }
+						@Override
+						public void onPermissionRationaleShouldBeShown(List<PermissionRequest> list, PermissionToken permissionToken) {
+							permissionToken.continuePermissionRequest();
+						}
+					}).check();
+		} else
+			liveData.postValue(true);
 
-    public static boolean aboveAndroidQ() {
-        return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q;
-    }
+		return liveData;
+	}
 
-    private static boolean checkSelfPermission(Context context, String permission) {
-        return ActivityCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
-    }
+	public static boolean aboveAndroidQ() {
+		return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q;
+	}
+
+	private static boolean checkSelfPermission(Context context, String permission) {
+		return ActivityCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
+	}
 }
