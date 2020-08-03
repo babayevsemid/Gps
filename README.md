@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.babayevsemid:Gps-tracker:1.0.1'
+    implementation 'com.github.babayevsemid:Gps-tracker:1.0.2'
     
     //And Play services location
     implementation 'com.google.android.gms:play-services-location:17.0.0'
@@ -142,8 +142,7 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
          
 * Full check location and gps is Enabled
 ```         
-        if(GpsPermission.checkLocation(getApplicationContext(), false) 
-                && GpsPermission.isGpsEnabled(getApplicationContext()){
+        if(GpsPermission.checkFullLocation(getApplicationContext(), false)){
             
         }
 ```
