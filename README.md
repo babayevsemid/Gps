@@ -142,8 +142,7 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
          
 * Full check location and gps is Enabled
 ```         
-        if(GpsPermission.checkLocation(getApplicationContext(), false) 
-                && GpsPermission.isGpsEnabled(getApplicationContext()){
+        if(GpsPermission.checkFullLocation(getApplicationContext(), false)){
             
         }
 ```
