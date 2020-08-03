@@ -7,4 +7,15 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
+    <application>
+        <receiver
+            android:name=".GpsConnectorReceiver"
+            android:enabled="true">
+            <intent-filter>
+                <!-- Intent filters for broadcast receiver -->
+                <action android:name="android.location.PROVIDERS_CHANGED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>

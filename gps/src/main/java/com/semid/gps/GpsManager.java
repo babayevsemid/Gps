@@ -5,8 +5,10 @@ import android.location.Location;
 import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.MutableLiveData;
 
 public class GpsManager {
+	public static MutableLiveData<Boolean> gpsEnableLiveData = new MutableLiveData<>();
 	private static Handler handler = new Handler();
 	public static Location location;
 
