@@ -85,6 +85,20 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
 ```
 
 
+### Gps enable live data
+
+```
+ GpsManager.gpsEnableLiveData.observeForever(aBoolean -> {
+            if (aBoolean)
+                //enabled
+            else
+                //disabled
+        });
+        
+ GpsManager.gpsEnableLiveData.postValue(GpsPermission.isGpsEnabled(getApplicationContext()));
+        
+```
+
 ### setWithBackgoundPermission false
 
 ![alt text](screenshots/simple.gif?raw=true)
