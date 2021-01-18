@@ -98,6 +98,14 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
  GpsManager.gpsEnableLiveData.postValue(GpsPermission.isGpsEnabled(getApplicationContext()));
         
 ```
+### Use backgrouund location
+
+```
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    
+    *.setWithBackgroundPermission(true)
+    
+```
 
 ### setWithBackgoundPermission false
 
