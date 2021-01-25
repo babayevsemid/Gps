@@ -51,7 +51,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 	}
 
 	public static GpsConfiguration getInstance(AppCompatActivity activity) {
-		if (instance == null || activity != instance.builder.activity)
+		if (instance == null || activity != GpsManager.Builder.activity)
 			instance = new GpsConfiguration();
 
 		return instance;
@@ -63,7 +63,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 
 		builder = build;
 
-		if (builder.activity == null)
+		if (GpsManager.Builder.activity == null)
 			reconnect = true;
 
 		if (refresh) {
@@ -82,8 +82,8 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 			connect();
 		}
 
-		if (builder.activity != null)
-			builder.activity.getLifecycle().addObserver(this);
+		if (GpsManager.Builder.activity != null)
+			GpsManager.Builder.activity.getLifecycle().addObserver(this);
 
 		return instance;
 	}
@@ -121,7 +121,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 				GpsPermission.requestLocation(builder.context, builder.withBackgroundPermission)
 						.observeForever(aBoolean -> {
 							if (aBoolean) {
-								if (builder.activity == null)
+								if (GpsManager.Builder.activity == null)
 									turnGPSOn();
 
 								if (!GpsPermission.checkLocation(builder.context, true)) {
@@ -161,22 +161,22 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 
 		if (GpsPermission.isGpsEnabled(builder.context)) {
 			initGpsTracking();
-		} else if (builder.activity != null && !requestedSettingPermission) {
+		} else if (GpsManager.Builder.activity != null && !requestedSettingPermission) {
 			mSettingsClient
 					.checkLocationSettings(mLocationSettingsRequest)
-					.addOnSuccessListener(builder.activity, locationSettingsResponse -> initGpsTracking())
-					.addOnFailureListener(builder.activity, e -> {
+					.addOnSuccessListener(GpsManager.Builder.activity, locationSettingsResponse -> initGpsTracking())
+					.addOnFailureListener(GpsManager.Builder.activity, e -> {
 						int statusCode = ((ApiException) e).getStatusCode();
 						if (statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
 							try {
 								ResolvableApiException rae = (ResolvableApiException) e;
-								rae.startResolutionForResult(builder.activity, 111);
+								rae.startResolutionForResult(GpsManager.Builder.activity, 111);
 
 								requestedSettingPermission = true;
 							} catch (IntentSender.SendIntentException ignored) {
 							}
 						} else {
-							canceledPermission = true;
+//							canceledPermission = true;
 						}
 					});
 		} else {

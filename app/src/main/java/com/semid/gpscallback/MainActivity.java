@@ -69,14 +69,21 @@ public class MainActivity extends AppCompatActivity {
 
 		new GpsManager.Builder()
 				.setActivity(this)
-				.setDistance(1)
-				.setUpdateTime(2000)
 				.setListener(callback)
-				.setOnResumeConnect(true)
+				.setOnResumeConnect(false)
 				.setOnPauseDisconnect(true)
-				.setTrackingEnabled(true)
-				.setWithBackgroundPermission(true)
 				.create();
+//
+//		new GpsManager.Builder()
+//				.setActivity(this)
+//				.setDistance(1)
+//				.setUpdateTime(2000)
+//				.setListener(callback)
+//				.setOnResumeConnect(true)
+//				.setOnPauseDisconnect(true)
+//				.setTrackingEnabled(true)
+//				.setWithBackgroundPermission(true)
+//				.create();
 	}
 
 	private void checkGpsEnableLiveData(){
