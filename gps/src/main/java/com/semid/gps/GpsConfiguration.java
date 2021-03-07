@@ -7,6 +7,8 @@ import android.content.IntentSender;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -164,9 +166,13 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 		} else if (GpsManager.Builder.activity != null && !requestedSettingPermission) {
 			mSettingsClient
 					.checkLocationSettings(mLocationSettingsRequest)
-					.addOnSuccessListener(GpsManager.Builder.activity, locationSettingsResponse -> initGpsTracking())
+					.addOnSuccessListener(GpsManager.Builder.activity, locationSettingsResponse -> {
+						new Handler(Looper.getMainLooper())
+								.postDelayed(this::initGpsTracking, 300);
+					})
 					.addOnFailureListener(GpsManager.Builder.activity, e -> {
 						int statusCode = ((ApiException) e).getStatusCode();
+
 						if (statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
 							try {
 								ResolvableApiException rae = (ResolvableApiException) e;
@@ -174,8 +180,11 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 
 								requestedSettingPermission = true;
 							} catch (IntentSender.SendIntentException ignored) {
+								new Handler(Looper.getMainLooper()).postDelayed(this::initGpsTracking, 300);
 							}
 						} else {
+							new Handler(Looper.getMainLooper())
+									.postDelayed(this::initGpsTracking, 300);
 //							canceledPermission = true;
 						}
 					});
