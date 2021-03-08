@@ -121,6 +121,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 
 		if (!isCanceledPermission()) {
 			if (GpsPermission.checkLocation(builder.context, builder.withBackgroundPermission) || bgRequestCanceled) {
+
 				turnGPSOn();
 			} else if (!requestedSettingPermission) {
 				GpsPermission.requestLocation(builder.context, builder.withBackgroundPermission)
@@ -137,6 +138,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 								canceledPermission = true;
 
 								checkPermission();
+								initLastKnownLocation();
 							}
 						});
 			} else {
@@ -158,15 +160,11 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 		if (builder.context == null)
 			return;
 
-		Location passive = getLastKnownLocation();
-		if (passive != null) {
-			GpsManager.setLocation(passive);
-			builder.callback.onLastKnownLocation(passive.getLatitude(), passive.getLongitude());
-		}
-
 		if (GpsPermission.isGpsEnabled(builder.context)) {
 			initGpsTracking();
 		} else if (GpsManager.Builder.activity != null && !requestedSettingPermission) {
+			initLastKnownLocation();
+
 			mSettingsClient
 					.checkLocationSettings(mLocationSettingsRequest)
 					.addOnSuccessListener(GpsManager.Builder.activity, locationSettingsResponse -> {
@@ -174,6 +172,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 								.postDelayed(this::initGpsTracking, 300);
 					})
 					.addOnFailureListener(GpsManager.Builder.activity, e -> {
+
 						int statusCode = ((ApiException) e).getStatusCode();
 
 						if (statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
@@ -196,6 +195,14 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 		}
 	}
 
+	private void initLastKnownLocation(){
+		Location passive = getLastKnownLocation();
+		if (passive != null) {
+			GpsManager.setLocation(passive);
+			builder.callback.onLastKnownLocation(passive.getLatitude(), passive.getLongitude());
+		}
+	}
+
 	@SuppressLint("MissingPermission")
 	public Location getLastKnownLocation() {
 		if (locationManager == null)
@@ -215,10 +222,16 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 			if (session.getLastLocation().getLatitude() != 0)
 				return session.getLastLocation();
 
+			if (builder.defaultLocation.getLatitude() != 0)
+				return builder.defaultLocation;
+
 			return null;
 		} else {
 			if (session.getLastLocation().getLatitude() != 0)
 				return session.getLastLocation();
+
+			if (builder.defaultLocation.getLatitude() != 0)
+				return builder.defaultLocation;
 
 			return null;
 		}

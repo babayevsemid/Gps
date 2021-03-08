@@ -45,6 +45,7 @@ public class TestActivity extends AppCompatActivity {
                     .setActivity(this)
                     .setDistance(1)
                     .setUpdateTime(2000)
+                    .setDefaultLocation(123,322)
                     .setListener(callback)
                     .setOnResumeConnect(false)
                     .setOnPauseDisconnect(false)

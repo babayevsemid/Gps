@@ -24,6 +24,7 @@ public class GpsManager {
 		static Builder instance;
 		static AppCompatActivity activity;
 		LocationCallback callback;
+		Location defaultLocation;
 		Context context;
 		int distance = 10;
 		int updateTime = 2000;
@@ -37,12 +38,16 @@ public class GpsManager {
 
 		public Builder setContext(Context context) {
 			this.context = context;
+
+			defaultLocation = new Location("passive");
+			defaultLocation.setLatitude(0);
+			defaultLocation.setLongitude(0);
 			return this;
 		}
 
 		public Builder setActivity(AppCompatActivity activity) {
 			Builder.activity = activity;
-			this.context = activity.getApplicationContext();
+			setContext(activity.getApplicationContext());
 
 			return this;
 		}
@@ -54,6 +59,12 @@ public class GpsManager {
 
 		public Builder setUpdateTime(int updateTime) {
 			this.updateTime = updateTime;
+			return this;
+		}
+
+		public Builder setDefaultLocation(double lat, double lng) {
+			defaultLocation.setLatitude(lat);
+			defaultLocation.setLongitude(lng);
 			return this;
 		}
 

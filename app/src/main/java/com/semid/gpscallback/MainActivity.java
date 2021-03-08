@@ -72,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
 				.setListener(callback)
 				.setOnResumeConnect(false)
 				.setOnPauseDisconnect(true)
+				.setDefaultLocation(123,322)
 				.create();
 //
 //		new GpsManager.Builder()
