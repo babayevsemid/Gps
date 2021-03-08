@@ -161,6 +161,9 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 			return;
 
 		if (GpsPermission.isGpsEnabled(builder.context)) {
+			if (!requestedSettingPermission)
+				initLastKnownLocation();
+
 			initGpsTracking();
 		} else if (GpsManager.Builder.activity != null && !requestedSettingPermission) {
 			initLastKnownLocation();
@@ -195,7 +198,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 		}
 	}
 
-	private void initLastKnownLocation(){
+	private void initLastKnownLocation() {
 		Location passive = getLastKnownLocation();
 		if (passive != null) {
 			GpsManager.setLocation(passive);
