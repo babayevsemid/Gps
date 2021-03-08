@@ -40,6 +40,8 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 	private GoogleApiClient mGoogleApiClient;
 	private static GpsConfiguration instance;
 
+	private GpsSession session;
+
 	private GpsManager.Builder builder;
 
 	private boolean canceledPermission;
@@ -64,6 +66,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 		boolean reconnect = false;
 
 		builder = build;
+		session = new GpsSession(builder.context);
 
 		if (GpsManager.Builder.activity == null)
 			reconnect = true;
@@ -203,13 +206,22 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 
 			for (String provider : list) {
 				Location location = locationManager.getLastKnownLocation(provider);
-				if (location != null)
+				if (location != null) {
+					session.setLastLocation(location);
 					return location;
+				}
 			}
 
+			if (session.getLastLocation().getLatitude() != 0)
+				return session.getLastLocation();
+
 			return null;
-		} else
+		} else {
+			if (session.getLastLocation().getLatitude() != 0)
+				return session.getLastLocation();
+
 			return null;
+		}
 	}
 
 	@SuppressLint("MissingPermission")
@@ -237,6 +249,7 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 			requestCount++;
 
 			GpsManager.setLocation(location);
+			session.setLastLocation(location);
 			builder.callback.onNewLocationAvailable(location.getLatitude(), location.getLongitude());
 		}
 
