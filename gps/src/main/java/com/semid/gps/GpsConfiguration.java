@@ -168,10 +168,8 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
             return;
 
         if (GpsPermission.isGpsEnabled(builder.context)) {
-            if (!requestedSettingPermission) {
-                Log.e("3", "3");
+            if (!requestedSettingPermission)
                 initLastKnownLocation();
-            }
 
             initGpsTracking();
         } else if (GpsManager.Builder.activity != null && !requestedSettingPermission) {
