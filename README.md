@@ -12,10 +12,10 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.babayevsemid:Gps-tracker:1.0.7'
+    implementation 'com.github.babayevsemid:Gps-tracker:1.0.8'
     
     //And Play services location
-    implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:18.0.0'
 }
 ```
 
@@ -49,7 +49,7 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
                 .setOnResumeConnect(true)
                 .setOnPauseDisconnect(true)
                 .setTrackingEnabled(true)
-				.setDefaultLocation(123,322)
+				.setDefaultLocation(42.235476235, 41.236453265)
                 .setWithBackgroundPermission(false)
                 .create();
 ```
