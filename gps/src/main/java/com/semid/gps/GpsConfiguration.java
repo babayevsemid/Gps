@@ -3,6 +3,7 @@ package com.semid.gps;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.location.Location;
 import android.location.LocationManager;
@@ -34,6 +35,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+    private GpsConnectorReceiver gpsReceiver = new GpsConnectorReceiver();
+
     private LocationSettingsRequest mLocationSettingsRequest;
     private SettingsClient mSettingsClient;
     private LocationManager locationManager;
@@ -85,8 +88,9 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
             connect();
         }
 
-        if (builder.activity != null) {
-            builder.activity.getLifecycle().addObserver(this);
+        if (GpsManager.Builder.activity != null) {
+            GpsManager.Builder.activity.getLifecycle().addObserver(this);
+            GpsManager.Builder.activity.registerReceiver(gpsReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
 
             GpsManager.gpsEnableLiveData.observe(GpsManager.Builder.activity, aBoolean -> {
                 if (aBoolean && GpsPermission.checkLocation(builder.context, false)) {
@@ -279,6 +283,12 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
             if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
                 mGoogleApiClient.disconnect();
             }
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    public void onDestroy() {
+        if (GpsManager.Builder.activity != null)
+            GpsManager.Builder.activity.unregisterReceiver(gpsReceiver);
     }
 
     private void initGpsTracking() {
