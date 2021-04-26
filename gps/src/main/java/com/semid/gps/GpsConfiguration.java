@@ -279,7 +279,6 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onResume() {
-        Toast.makeText(builder.context, "s", Toast.LENGTH_SHORT).show();
         try {
             GpsManager.Builder.activity.registerReceiver(gpsReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
         } catch (Exception ignored) {
