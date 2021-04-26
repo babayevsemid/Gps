@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -90,7 +91,6 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
 
         if (GpsManager.Builder.activity != null) {
             GpsManager.Builder.activity.getLifecycle().addObserver(this);
-            GpsManager.Builder.activity.registerReceiver(gpsReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
 
             GpsManager.gpsEnableLiveData.observe(GpsManager.Builder.activity, aBoolean -> {
                 if (aBoolean && GpsPermission.checkLocation(builder.context, false)) {
@@ -277,6 +277,15 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
             disConnect();
     }
 
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    public void onResume() {
+        Toast.makeText(builder.context, "s", Toast.LENGTH_SHORT).show();
+        try {
+            GpsManager.Builder.activity.registerReceiver(gpsReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
+        } catch (Exception ignored) {
+        }
+    }
+
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
     public void disConnect() {
         if (builder.onPauseDisconnect)
@@ -285,10 +294,14 @@ public class GpsConfiguration implements LifecycleObserver, GoogleApiClient.Conn
             }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    public void onDestroy() {
-        if (GpsManager.Builder.activity != null)
-            GpsManager.Builder.activity.unregisterReceiver(gpsReceiver);
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    public void onStop() {
+        try {
+            if (GpsManager.Builder.activity != null)
+                GpsManager.Builder.activity.unregisterReceiver(gpsReceiver);
+        } catch (Exception ignored) {
+
+        }
     }
 
     private void initGpsTracking() {
