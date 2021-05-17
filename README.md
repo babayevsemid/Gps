@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.babayevsemid:Gps-tracker:1.1.2'
+    implementation 'com.github.babayevsemid:Gps-tracker:2.0.0'
     
     //And Play services location
     implementation 'com.google.android.gms:play-services-location:18.0.0'
@@ -28,11 +28,11 @@ Note: (Context) Works if GPS is active, otherwise will not function
 val manager = GpsBuilder(this) // this: AppCompatActivity, Fragment or Context
                 .build()
 
-manager.onNewLocationAvailable = { lat: Double, lon: Double ->
+manager.onNewLocationAvailable = { lat: Double, lng: Double ->
     
 }
 
-manager.onLastKnownLocation = { lat: Double, lon: Double ->
+manager.onLastKnownLocation = { lat: Double, lng: Double ->
     
 }
 
@@ -53,21 +53,23 @@ manager.connect()
 GpsManager manager = new GpsBuilder(this)
                 .build()
 
-manager.onNewLocationAvailable = (lat, lon) -> {
+manager.onNewLocationAvailable = (lat, lng) -> {
            
       return null;
 };
 
-manager.onLastKnownLocation = (lat, lon) -> {
+manager.onLastKnownLocation = (lat, lng) -> {
           
       return null;
 };
 
 manager.onBackgroundNotAvailable = () -> {
+
       return null;
 };
 
 manager.onNotAvailable = () -> {
+
       return null;
 };
 
@@ -86,11 +88,11 @@ val manager = GpsBuilder(this) // this: AppCompatActivity, Fragment or Context
                 .configDefaultLocation(42.235476235, 41.236453265) // default location
                 .build()
 
-manager.onNewLocationAvailable = { lat: Double, lon: Double ->
+manager.onNewLocationAvailable = { lat: Double, lng: Double ->
     
 }
 
-manager.onLastKnownLocation = { lat: Double, lon: Double ->
+manager.onLastKnownLocation = { lat: Double, lng: Double ->
     
 }
 
