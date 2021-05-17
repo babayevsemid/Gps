@@ -19,72 +19,91 @@ dependencies {
 }
 ```
 
-### Use with AppCompatActivity
+Note: (AppCompatActivity, Fragment) Returns location if GPS is active, otherwise will prompt to enable it and return consequently
+Note: (Context) Works if GPS is active, otherwise will not function
 
-Note: Returns location if GPS is active, otherwise will prompt to enable it and return consequently
-
+### Use in Kotlin
+ 
 ```
-GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
-            @Override
-            public void onNewLocationAvailable(double lat, double lon) {
-                Log.e("onNewLocationAvailable", lat + "," + lon);
-            }
+val manager = GpsBuilder(this) // this: AppCompatActivity, Fragment or Context
+                .build()
 
-            @Override
-            public void onLastKnownLocation(double lat, double lon) {
-                Log.e("onLastKnownLocation", lat + "," + lon);
-            }
+manager.onNewLocationAvailable = { lat: Double, lon: Double ->
+    
+}
 
-            @Override
-            public void onNotAvailable() {
-                Log.e("onNotAvailable", "onNotAvailable");
-            }
-        };
+manager.onLastKnownLocation = { lat: Double, lon: Double ->
+    
+}
 
-        new GpsManager.Builder()
-                .setActivity(this)
-                .setDistance(1)
-                .setUpdateTime(2000)
-                .setListener(callback)
-                .setOnResumeConnect(true)
-                .setOnPauseDisconnect(true)
-                .setTrackingEnabled(true)
-				.setDefaultLocation(42.235476235, 41.236453265)
-                .setWithBackgroundPermission(false)
-                .create();
+manager.onBackgroundNotAvailable = {
+            
+}
+
+manager.onNotAvailable = {
+     
+}
+
+manager.connect()
 ```
 
-### Use with Context
-
-Note: Works if GPS is active, otherwise will not function
+### Use in Java
 
 ```
-GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
-            @Override
-            public void onNewLocationAvailable(double lat, double lon) {
-                Log.e("onNewLocationAvailable", lat + "," + lon);
-            }
+GpsManager manager = new GpsBuilder(this)
+                .build()
 
-            @Override
-            public void onLastKnownLocation(double lat, double lon) {
-                Log.e("onLastKnownLocation", lat + "," + lon);
-            }
+manager.onNewLocationAvailable = (lat, lon) -> {
+           
+      return null;
+};
 
-            @Override
-            public void onNotAvailable() {
-                Log.e("onNotAvailable", "onNotAvailable");
-            }
-        };
+manager.onLastKnownLocation = (lat, lon) -> {
+          
+      return null;
+};
 
-        new GpsManager.Builder()
-                .setContext(getApplicationContext())
-                .setDistance(1)
-                .setUpdateTime(2000) 
-                .setListener(callback) 
-                .setTrackingEnabled(true)
-                .create();
+manager.onBackgroundNotAvailable = () -> {
+      return null;
+};
+
+manager.onNotAvailable = () -> {
+      return null;
+};
+
+manager.connect()
 ```
 
+### Tracking
+ 
+```
+val manager = GpsBuilder(this) // this: AppCompatActivity, Fragment or Context
+		.configDistance(1) // 1 meter
+                .configUpdateTime(2000) // 2 sec
+                .configTrackingEnabled(true)
+                .configOnResumeConnect(true)
+                .configOnPauseDisconnect(false)
+                .configDefaultLocation(42.235476235, 41.236453265) // default location
+                .build()
+
+manager.onNewLocationAvailable = { lat: Double, lon: Double ->
+    
+}
+
+manager.onLastKnownLocation = { lat: Double, lon: Double ->
+    
+}
+
+manager.onBackgroundNotAvailable = {
+            
+}
+
+manager.onNotAvailable = {
+     
+}
+
+manager.connect()
+```
 
 ### Gps enable live data
 
@@ -104,7 +123,7 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
 ```
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     
-    *.setWithBackgroundPermission(true)
+    *.configWithBackgroundPermission(true)
     
 ```
 
@@ -122,7 +141,7 @@ GpsManager.LocationCallback callback = new GpsManager.LocationCallback() {
         * distance - 10; //10 Meter
         * updateTime - 2000; //2 sec
         * trackingEnabled - false;
-        * onResumeConnect - true;
+        * onResumeConnect - false;
         * onPauseDisconnect - true;
         * withBackgroundPermission - false;
 ```
