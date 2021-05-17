@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initLocation() {
-        GpsManager   manager = new GpsBuilder(this)
+        manager = new GpsBuilder(this)
                 .configDistance(1)
                 .configUpdateTime(2000)
                 .configTrackingEnabled(true)

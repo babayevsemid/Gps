@@ -28,33 +28,32 @@ class KotlinActivity : AppCompatActivity() {
     }
 
     private fun initLocation() {
-        val builder = GpsBuilder(this)
+        manager = GpsBuilder(this)
                 .configDistance(1)
                 .configUpdateTime(2000)
                 .configTrackingEnabled(true)
                 .configOnResumeConnect(true)
                 .configOnPauseDisconnect(false)
                 .configDefaultLocation(42.235476235, 41.236453265)
+                .build()
 
-        builder.onNewLocationAvailable = { lat: Double, lon: Double ->
+        manager.onNewLocationAvailable = { lat: Double, lon: Double ->
             Log.e("onNewLocationAvailable", "$lat,$lon")
             binding.newLocationTxt.text = "New location : $lat,$lon"
         }
 
-        builder.onLastKnownLocation = { lat: Double, lon: Double ->
+        manager.onLastKnownLocation = { lat: Double, lon: Double ->
             Log.e("onLastKnownLocation", "$lat,$lon")
             binding.lastLocationTxt.text = "Last known location : $lat,$lon"
         }
 
-        builder.onBackgroundNotAvailable = {
+        manager.onBackgroundNotAvailable = {
             Log.e("onBackgroundNotAv", "onBackgroundNotAvailable")
         }
 
-        builder.onNotAvailable = {
+        manager.onNotAvailable = {
             Log.e("onNotAvailable", "onNotAvailable")
         }
-
-        manager = GpsManager(builder)
     }
 
     private fun getLocation() {
