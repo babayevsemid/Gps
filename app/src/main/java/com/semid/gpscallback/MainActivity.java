@@ -35,22 +35,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initLocation() {
-        GpsBuilder builder = new GpsBuilder(this)
+        GpsManager   manager = new GpsBuilder(this)
                 .configDistance(1)
                 .configUpdateTime(2000)
                 .configTrackingEnabled(true)
                 .configOnResumeConnect(true)
                 .configOnPauseDisconnect(false)
-                .configDefaultLocation(42.235476235, 41.236453265);
+                .configDefaultLocation(42.235476235, 41.236453265)
+                .build();
 
-        builder.onNewLocationAvailable = (lat, lon) -> {
+        manager.onNewLocationAvailable = (lat, lon) -> {
             Log.e("onNewLocationAvailable", lat + ", " + lon);
 
             binding.newLocationTxt.setText("New location : " + lat + ", " + lon);
             return null;
         };
 
-        builder.onLastKnownLocation = (lat, lon) -> {
+        manager.onLastKnownLocation = (lat, lon) -> {
             Log.e("onNewLocationAvailable", lat + ", " + lon);
 
             binding.lastLocationTxt.setText("Last known location : " + lat + ", " + lon);
@@ -58,19 +59,17 @@ public class MainActivity extends AppCompatActivity {
         };
 
 
-        builder.onBackgroundNotAvailable = () -> {
+        manager.onBackgroundNotAvailable = () -> {
             Log.e("onBackgroundNotAv", "onBackgroundNotAvailable");
 
             return null;
         };
 
-        builder.onNotAvailable = () -> {
+        manager.onNotAvailable = () -> {
             Log.e("onNotAvailable", "onNotAvailable");
 
             return null;
         };
-
-        manager = new GpsManager(builder);
     }
 
     private void checkGpsEnableLiveData() {
