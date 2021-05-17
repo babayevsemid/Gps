@@ -64,10 +64,12 @@ manager.onLastKnownLocation = (lat, lon) -> {
 };
 
 manager.onBackgroundNotAvailable = () -> {
+
       return null;
 };
 
 manager.onNotAvailable = () -> {
+
       return null;
 };
 
