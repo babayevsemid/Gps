@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.babayevsemid:Gps-tracker:2.0.0'
+    implementation 'com.github.babayevsemid:Gps-tracker:2.0.1'
     
     //And Play services location
     implementation 'com.google.android.gms:play-services-location:18.0.0'
@@ -86,6 +86,7 @@ val manager = GpsBuilder(this) // this: AppCompatActivity, Fragment or Context
                 .configOnResumeConnect(true)
                 .configOnPauseDisconnect(false)
                 .configDefaultLocation(42.235476235, 41.236453265) // default location
+            	.configPriority(LocationRequestPriority.PRIORITY_HIGH_ACCURACY)
                 .build()
 
 manager.onNewLocationAvailable = { lat: Double, lng: Double ->
@@ -106,6 +107,7 @@ manager.onNotAvailable = {
 
 manager.connect()
 ```
+ 
 
 ### Gps enable live data
 
@@ -146,6 +148,7 @@ manager.connect()
         * onResumeConnect - false;
         * onPauseDisconnect - true;
         * withBackgroundPermission - false;
+        * priority - PRIORITY_HIGH_ACCURACY;
 ```
 
 ### Last getted location
