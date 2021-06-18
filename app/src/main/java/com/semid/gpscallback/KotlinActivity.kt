@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.semid.gps.GpsBuilder
 import com.semid.gps.GpsManager
 import com.semid.gps.GpsPermission.isGpsEnabled
+import com.semid.gps.LocationRequestPriority
 import com.semid.gpscallback.databinding.ActivityKotlinBinding
 
 class KotlinActivity : AppCompatActivity() {
@@ -13,7 +14,7 @@ class KotlinActivity : AppCompatActivity() {
         ActivityKotlinBinding.inflate(layoutInflater)
     }
 
-    private lateinit var manager: GpsManager
+    private var manager: GpsManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,41 +24,46 @@ class KotlinActivity : AppCompatActivity() {
             getLocation()
         }
 
+        binding.root.setOnClickListener {
+            manager?.disconnect()
+        }
+
         initLocation()
         checkGpsEnableLiveData()
     }
 
     private fun initLocation() {
         manager = GpsBuilder(this)
-                .configDistance(1)
-                .configUpdateTime(2000)
-                .configTrackingEnabled(true)
-                .configOnResumeConnect(true)
-                .configOnPauseDisconnect(false)
-                .configDefaultLocation(42.235476235, 41.236453265)
-                .build()
+            .configDistance(1)
+            .configUpdateTime(2000)
+            .configTrackingEnabled(true)
+            .configOnResumeConnect(true)
+            .configOnPauseDisconnect(false)
+            .configDefaultLocation(42.235476235, 41.236453265)
+            .configPriority(LocationRequestPriority.PRIORITY_HIGH_ACCURACY)
+            .build()
 
-        manager.onNewLocationAvailable = { lat: Double, lon: Double ->
+        manager?.onNewLocationAvailable = { lat: Double, lon: Double ->
             Log.e("onNewLocationAvailable", "$lat,$lon")
             binding.newLocationTxt.text = "New location : $lat,$lon"
         }
 
-        manager.onLastKnownLocation = { lat: Double, lon: Double ->
+        manager?.onLastKnownLocation = { lat: Double, lon: Double ->
             Log.e("onLastKnownLocation", "$lat,$lon")
             binding.lastLocationTxt.text = "Last known location : $lat,$lon"
         }
 
-        manager.onBackgroundNotAvailable = {
+        manager?.onBackgroundNotAvailable = {
             Log.e("onBackgroundNotAv", "onBackgroundNotAvailable")
         }
 
-        manager.onNotAvailable = {
+        manager?.onNotAvailable = {
             Log.e("onNotAvailable", "onNotAvailable")
         }
     }
 
     private fun getLocation() {
-        manager.connect()
+        manager?.connect()
     }
 
     private fun checkGpsEnableLiveData() {

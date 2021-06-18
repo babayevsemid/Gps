@@ -2,13 +2,21 @@ package com.semid.gps
 
 import android.location.Location
 import android.os.CountDownTimer
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 
 class GpsManager(builder: GpsBuilder) {
+    private var gpsConfiguration: GpsConfiguration? = null
 
     fun connect() {
         countDownTimer.cancel()
         countDownTimer.start()
+    }
+
+    fun disconnect() {
+        countDownTimer.cancel()
+
+        gpsConfiguration?.disconnect()
     }
 
     companion object {
@@ -17,11 +25,17 @@ class GpsManager(builder: GpsBuilder) {
 
         @JvmField
         var location = MutableLiveData<Location>()
+
+        @JvmField
+        var isConnected = false
+
     }
 
     init {
-        builder.onNewLocationAvailable = { lat: Double, lon: Double -> onNewLocationAvailable?.invoke(lat, lon) }
-        builder.onLastKnownLocation = { lat: Double, lon: Double -> onLastKnownLocation?.invoke(lat, lon) }
+        builder.onNewLocationAvailable =
+            { lat: Double, lon: Double -> onNewLocationAvailable?.invoke(lat, lon) }
+        builder.onLastKnownLocation =
+            { lat: Double, lon: Double -> onLastKnownLocation?.invoke(lat, lon) }
         builder.onNotAvailable = { onNotAvailable?.invoke() }
         builder.onBackgroundNotAvailable = { onBackgroundNotAvailable?.invoke() }
     }
@@ -43,7 +57,7 @@ class GpsManager(builder: GpsBuilder) {
         override fun onTick(millisUntilFinished: Long) {}
 
         override fun onFinish() {
-            GpsConfiguration().build(builder)
+            gpsConfiguration = GpsConfiguration().build(builder)
         }
     }
 }

@@ -21,6 +21,8 @@ class GpsBuilder {
     var onPauseDisconnect = true
     var withBackgroundPermission = false
 
+    var priority = LocationRequestPriority.PRIORITY_HIGH_ACCURACY
+
     init {
         defaultLocation = Location("passive")
         defaultLocation!!.latitude = 0.0
@@ -80,6 +82,12 @@ class GpsBuilder {
         this.trackingEnabled = trackingEnabled
         return this
     }
+
+    fun configPriority(priority: LocationRequestPriority): GpsBuilder {
+        this.priority = priority
+        return this
+    }
+
 
     fun build(): GpsManager {
         return GpsManager(this)
