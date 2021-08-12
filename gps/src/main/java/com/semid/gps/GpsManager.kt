@@ -1,5 +1,6 @@
 package com.semid.gps
 
+import android.content.Context
 import android.location.Location
 import android.os.CountDownTimer
 import android.util.Log
@@ -26,6 +27,9 @@ class GpsManager(builder: GpsBuilder) {
         @JvmField
         var location = MutableLiveData<Location>()
 
+        @JvmStatic
+        fun session(context: Context) = GpsSession.getInstance(context)
+
         @JvmField
         var isConnected = false
 
@@ -33,18 +37,18 @@ class GpsManager(builder: GpsBuilder) {
 
     init {
         builder.onNewLocationAvailable =
-            { lat: Double, lon: Double -> onNewLocationAvailable?.invoke(lat, lon) }
+            { lat: Double, lng: Double -> onNewLocationAvailable?.invoke(lat, lng) }
         builder.onLastKnownLocation =
-            { lat: Double, lon: Double -> onLastKnownLocation?.invoke(lat, lon) }
+            { lat: Double, lng: Double -> onLastKnownLocation?.invoke(lat, lng) }
         builder.onNotAvailable = { onNotAvailable?.invoke() }
         builder.onBackgroundNotAvailable = { onBackgroundNotAvailable?.invoke() }
     }
 
     @JvmField
-    var onNewLocationAvailable: ((lat: Double, lon: Double) -> Unit)? = null
+    var onNewLocationAvailable: ((lat: Double, lng: Double) -> Unit)? = null
 
     @JvmField
-    var onLastKnownLocation: ((lat: Double, lon: Double) -> Unit)? = null
+    var onLastKnownLocation: ((lat: Double, lng: Double) -> Unit)? = null
 
     @JvmField
     var onNotAvailable: (() -> Unit)? = null

@@ -3,10 +3,14 @@ package com.semid.gps
 import android.content.Context
 import android.content.SharedPreferences
 import android.location.Location
+import androidx.core.content.edit
 
-class GpsSession(context: Context) {
-    private val preferences: SharedPreferences = context.getSharedPreferences("com.semid.gps", Context.MODE_PRIVATE)
-    private var editor: SharedPreferences.Editor? = null
+class GpsSession private constructor() {
+    private lateinit var preferences: SharedPreferences
+
+    fun init(context: Context) {
+        preferences = context.getSharedPreferences("com.semid.gps", Context.MODE_PRIVATE)
+    }
 
     var lastLocation: Location
         get() {
@@ -16,14 +20,27 @@ class GpsSession(context: Context) {
             return loc
         }
         set(location) {
-            editor = preferences.edit()
-            editor?.putString(KEY_LAST_LAT, location.latitude.toString())
-            editor?.putString(KEY_LAST_LNG, location.longitude.toString())
-            editor?.apply()
+            preferences.edit {
+                putString(KEY_LAST_LAT, location.latitude.toString())
+                putString(KEY_LAST_LNG, location.longitude.toString())
+            }
         }
 
     companion object {
+        @Volatile
+        private var INSTANCE: GpsSession? = null
         private const val KEY_LAST_LAT = "last lat"
         private const val KEY_LAST_LNG = "last lng"
+
+        fun getInstance(context: Context): GpsSession {
+            return INSTANCE ?: synchronized(this) {
+
+                val instance = GpsSession()
+                instance.init(context)
+
+                INSTANCE = instance
+                instance
+            }
+        }
     }
 }

@@ -44,8 +44,7 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
     fun build(build: GpsBuilder): GpsConfiguration {
         builder = build
 
-        session = builder.context?.let { GpsSession(it) }
-
+        session = builder.context?.let { GpsSession.getInstance(it) }
 
         isCanceledPermission = false
         bgRequestCanceled = false
@@ -181,30 +180,24 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
     val lastKnownLocation: Location?
         get() {
             builder.context?.let {
-                return if (checkLocation(it, false)) {
+                if (session?.lastLocation?.latitude != 0.0)
+                    return session?.lastLocation
+
+                if (checkLocation(it, false)) {
                     val list = listOf("gps", "passive", "network")
 
                     for (provider in list) {
                         val location = locationManager.getLastKnownLocation(provider)
 
                         if (location != null) {
-                            session!!.lastLocation = location
+                            session?.lastLocation = location
                             return location
                         }
                     }
-                    if (session!!.lastLocation.latitude != 0.0)
-                        return session!!.lastLocation
-
-                    if (builder.defaultLocation?.latitude != 0.0)
-                        builder.defaultLocation else null
-
-                } else {
-                    if (session!!.lastLocation.latitude != 0.0)
-                        return session!!.lastLocation
-
-                    if (builder.defaultLocation?.latitude != 0.0)
-                        builder.defaultLocation else null
                 }
+
+                if (builder.defaultLocation?.latitude != 0.0)
+                    return builder.defaultLocation else null
             }
 
             return null
@@ -238,7 +231,7 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
     override fun onLocationChanged(location: Location) {
         GpsManager.location.value = location
 
-        session!!.lastLocation = location
+        session?.lastLocation = location
 
         builder.onNewLocationAvailable?.invoke(location.latitude, location.longitude)
 
