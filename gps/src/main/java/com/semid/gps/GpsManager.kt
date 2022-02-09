@@ -36,6 +36,14 @@ class GpsManager(builder: GpsBuilder) {
     }
 
     init {
+        builder.context?.let { context ->
+            if (session(context).lastLocation.latitude == 0.0) {
+                builder.defaultLocation?.let {
+                    session(context).lastLocation = it
+                }
+            }
+        }
+
         builder.onNewLocationAvailable =
             { lat: Double, lng: Double -> onNewLocationAvailable?.invoke(lat, lng) }
         builder.onLastKnownLocation =
