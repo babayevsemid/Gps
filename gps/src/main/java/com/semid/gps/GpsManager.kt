@@ -7,7 +7,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 
 class GpsManager(builder: GpsBuilder) {
-    private val gpsConfiguration = GpsConfiguration()
+    private val gpsConfiguration = GpsConfiguration(builder.context)
 
     fun connect() {
         countDownTimer.cancel()

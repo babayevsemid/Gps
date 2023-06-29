@@ -35,8 +35,6 @@ class KotlinActivity : AppCompatActivity() {
 
     private fun initLocation() {
         manager = GpsBuilder(this)
-            .configOnResumeConnect(true)
-            .configOnPauseDisconnect(false)
             .configDefaultLocation(42.235476235, 41.236453265)
             .configPriority(LocationRequestPriority.PRIORITY_HIGH_ACCURACY)
             .build()

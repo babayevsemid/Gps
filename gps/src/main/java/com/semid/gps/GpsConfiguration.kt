@@ -21,15 +21,15 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 
-class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
-    GoogleApiClient.OnConnectionFailedListener, LocationListener {
+class GpsConfiguration(private val context: Context) : LifecycleObserver {
+    private lateinit var locationManager: LocationManager
     private lateinit var mLocationSettingsRequest: LocationSettingsRequest
     private lateinit var mSettingsClient: SettingsClient
-    private lateinit var locationManager: LocationManager
     private lateinit var locationRequest: LocationRequest
-    private var mGoogleApiClient: GoogleApiClient? = null
 
     private val gpsReceiver = GpsConnectorReceiver()
+
+    private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
     private var session: GpsSession? = null
     private lateinit var builder: GpsBuilder
@@ -40,7 +40,7 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
     fun build(build: GpsBuilder) {
         builder = build
 
-        session = builder.context?.let { GpsSession.getInstance(it) }
+        session = GpsSession.getInstance(build.context)
 
         isCanceledPermission = false
 
@@ -65,7 +65,7 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
     }
 
     private fun init() {
-        builder.context?.let {
+        builder.context.let {
             locationManager = it.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             mSettingsClient = LocationServices.getSettingsClient(it)
             locationRequest = LocationRequest.create()
@@ -145,7 +145,7 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
     @get:SuppressLint("MissingPermission")
     val lastKnownLocation: Location?
         get() {
-            builder.context?.let {
+            builder.context.let {
                 if (session?.lastLocation?.latitude != 0.0)
                     return session?.lastLocation
 
@@ -169,49 +169,13 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
             return null
         }
 
-    @SuppressLint("MissingPermission")
-    override fun onConnected(bundle: Bundle?) {
-        try {
-            GpsManager.isConnected = true
-
-            if (GpsPermission.checkLocation(builder.context, false))
-                mGoogleApiClient?.let {
-                    LocationServices.FusedLocationApi.requestLocationUpdates(
-                        it,
-                        locationRequest,
-                        this
-                    )
-                }
-        } catch (ignored: Exception) {
-        }
-    }
-
-    override fun onConnectionSuspended(i: Int) {
-        GpsManager.isConnected = false
-    }
-
-    override fun onConnectionFailed(connectionResult: ConnectionResult) {
-        GpsManager.isConnected = false
-    }
-
-    override fun onLocationChanged(location: Location) {
-        GpsManager.location.value = location
-
-        session?.lastLocation = location
-
-        builder.onNewLocationAvailable?.invoke(location.latitude, location.longitude)
-
-        if (!builder.trackingEnabled)
-            disconnect()
-    }
-
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     fun onResume() {
         if (builder.onResumeConnect &&
-            GpsPermission.checkFullLocation(builder.context!!, withBackground = false)
+            GpsPermission.checkFullLocation(builder.context, withBackground = false)
         ) {
             disconnect()
-            Log.e("onResume",builder.onResumeConnect.toString())
+            Log.e("onResume", builder.onResumeConnect.toString())
 
             initGpsTracking()
         }
@@ -241,26 +205,37 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
     }
 
     fun disconnect() {
-        mGoogleApiClient?.disconnect()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
 
         GpsManager.isConnected = false
     }
 
     @SuppressLint("MissingPermission")
     private fun initGpsTracking() {
-        builder.context?.let {
-            if (!GpsPermission.checkLocation(it, false)) return
+        if (!GpsPermission.checkLocation(builder.context, false)) return
 
-            if (mGoogleApiClient == null)
-                mGoogleApiClient = GoogleApiClient.Builder(it)
-                    .addOnConnectionFailedListener(this)
-                    .addConnectionCallbacks(this)
-                    .addApi(LocationServices.API)
-                    .build()
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
 
-            if (mGoogleApiClient?.isConnected == false)
-                mGoogleApiClient?.connect()
-        }
+        GpsManager.isConnected = true
     }
 
+    private val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(result: LocationResult) {
+            Log.e("sdfa", result.locations.toString())
+            result.locations.firstOrNull()?.let { location ->
+                GpsManager.location.value = location
+
+                session?.lastLocation = location
+
+                builder.onNewLocationAvailable?.invoke(location.latitude, location.longitude)
+
+                if (!builder.trackingEnabled)
+                    disconnect()
+            }
+        }
+    }
 }

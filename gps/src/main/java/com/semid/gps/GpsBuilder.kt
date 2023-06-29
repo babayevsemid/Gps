@@ -8,9 +8,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 
 class GpsBuilder {
-    var defaultLocation: Location? = null
+    var context: Context
     var activity: AppCompatActivity? = null
-    var context: Context? = null
+    var defaultLocation: Location? = null
     var lifecycle: Lifecycle? = null
     var lifecycleOwner: LifecycleOwner? = null
 
@@ -41,7 +41,7 @@ class GpsBuilder {
     }
 
     constructor(fragment: Fragment) {
-        this.context = fragment.context
+        this.context = fragment.requireContext()
         this.lifecycle = fragment.lifecycle
         this.lifecycleOwner = fragment.viewLifecycleOwner
         this.activity = fragment.activity as AppCompatActivity?
