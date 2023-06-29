@@ -40,8 +40,8 @@ object GpsPermission {
     }
 
     @JvmStatic
-    fun requestLocation(context: Context?, withBackground: Boolean): MutableLiveData<Boolean> {
-        val liveData = MutableLiveData<Boolean>()
+    fun requestLocation(context: Context?, withBackground: Boolean): SingleLiveEvent<Boolean> {
+        val liveData = SingleLiveEvent<Boolean>()
         if (!checkLocation(context, withBackground)) {
 
             val list = ArrayList<String>()

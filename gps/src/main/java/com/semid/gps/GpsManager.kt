@@ -7,7 +7,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 
 class GpsManager(builder: GpsBuilder) {
-    private var gpsConfiguration: GpsConfiguration? = null
+    private val gpsConfiguration = GpsConfiguration()
 
     fun connect() {
         countDownTimer.cancel()
@@ -17,7 +17,7 @@ class GpsManager(builder: GpsBuilder) {
     fun disconnect() {
         countDownTimer.cancel()
 
-        gpsConfiguration?.disconnect()
+        gpsConfiguration.disconnect()
     }
 
     companion object {
@@ -32,7 +32,6 @@ class GpsManager(builder: GpsBuilder) {
 
         @JvmField
         var isConnected = false
-
     }
 
     init {
@@ -65,11 +64,11 @@ class GpsManager(builder: GpsBuilder) {
     var onBackgroundNotAvailable: (() -> Unit)? = null
 
 
-    private val countDownTimer = object : CountDownTimer(300, 100) {
+    private val countDownTimer = object : CountDownTimer(500, 100) {
         override fun onTick(millisUntilFinished: Long) {}
 
         override fun onFinish() {
-            gpsConfiguration = GpsConfiguration().build(builder)
+            gpsConfiguration.build(builder)
         }
     }
 }

@@ -25,6 +25,7 @@ class KotlinActivity : AppCompatActivity() {
         }
 
         binding.root.setOnClickListener {
+            Log.e("disss","clikck")
             manager?.disconnect()
         }
 
@@ -34,9 +35,6 @@ class KotlinActivity : AppCompatActivity() {
 
     private fun initLocation() {
         manager = GpsBuilder(this)
-            .configDistance(1)
-            .configUpdateTime(2000)
-            .configTrackingEnabled(true)
             .configOnResumeConnect(true)
             .configOnPauseDisconnect(false)
             .configDefaultLocation(42.235476235, 41.236453265)

@@ -13,13 +13,13 @@ class GpsConnectorReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         this.context = context
 
-        if (intent.action != null && intent.action!! == LocationManager.PROVIDERS_CHANGED_ACTION) {
+        if (intent.action != null && intent.action == LocationManager.PROVIDERS_CHANGED_ACTION) {
             countDownTimer.cancel()
             countDownTimer.start()
         }
     }
 
-    private val countDownTimer = object : CountDownTimer(500, 100) {
+    private val countDownTimer = object : CountDownTimer(700, 100) {
         override fun onTick(millisUntilFinished: Long) {}
 
         override fun onFinish() {

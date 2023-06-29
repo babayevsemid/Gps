@@ -11,6 +11,7 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
@@ -19,9 +20,6 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
-import com.semid.gps.GpsPermission.checkLocation
-import com.semid.gps.GpsPermission.isGpsEnabled
-import com.semid.gps.GpsPermission.requestLocation
 
 class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
     GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -37,38 +35,33 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
     private lateinit var builder: GpsBuilder
 
     private var isCanceledPermission = false
-    private var bgRequestCanceled = false
-    private var requestedSettingPermission = false
 
 
-    fun build(build: GpsBuilder): GpsConfiguration {
+    fun build(build: GpsBuilder) {
         builder = build
 
         session = builder.context?.let { GpsSession.getInstance(it) }
 
         isCanceledPermission = false
-        bgRequestCanceled = false
-        requestedSettingPermission = false
-
-        init()
 
         if (builder.activity == null) {
             disconnect()
-            connect()
         }
 
-        builder.lifecycleOwner?.let {
+        init()
+
+        builder.lifecycle?.let {
+            builder.lifecycle?.removeObserver(this)
             builder.lifecycle?.addObserver(this)
 
-            GpsManager.gpsEnableLiveData.observe(it, { aBoolean: Boolean ->
-                if (aBoolean && checkLocation(builder.context, false)) {
-                    requestedSettingPermission = true
+            GpsManager.gpsEnableLiveData.observeForever {
+                if (it && GpsPermission.checkLocation(builder.context, withBackground = false))
                     initGpsTracking()
-                }
-            })
+            }
         }
 
-        return this
+        requestPermission()
+        initLastKnownLocation()
     }
 
     private fun init() {
@@ -76,94 +69,66 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
             locationManager = it.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             mSettingsClient = LocationServices.getSettingsClient(it)
             locationRequest = LocationRequest.create()
-            locationRequest.smallestDisplacement = builder.distance.toFloat()
-            locationRequest.interval = builder.updateTime
-            locationRequest.fastestInterval = builder.updateTime / 2
             locationRequest.priority = builder.priority.value
+
+            if (builder.trackingEnabled) {
+                locationRequest.smallestDisplacement = builder.distance.toFloat()
+                locationRequest.interval = builder.updateTime
+                locationRequest.fastestInterval = builder.updateTime / 2
+            }
 
             val builder = LocationSettingsRequest.Builder()
                 .addLocationRequest(locationRequest)
 
             mLocationSettingsRequest = builder.build()
-            builder.setAlwaysShow(true)
         }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    fun connect() {
-        builder.context?.let {
-            if (!builder.onResumeConnect && requestedSettingPermission) return
-
-            if (!isCanceledPermission) {
-                if (checkLocation(
-                        builder.context,
-                        builder.withBackgroundPermission
-                    ) || bgRequestCanceled
-                ) {
-                    turnGPSOn()
-                } else if (!requestedSettingPermission) {
-                    requestLocation(builder.context, builder.withBackgroundPermission)
-                        .observeForever { aBoolean: Boolean ->
-                            if (aBoolean) {
-                                turnGPSOn()
-
-                                if (!checkLocation(builder.context, true)) {
-                                    bgRequestCanceled = true
-                                    builder.onBackgroundNotAvailable?.invoke()
-                                }
-                            } else {
-                                isCanceledPermission = true
-                                checkPermission()
-                                initLastKnownLocation()
-                            }
+    private fun requestPermission() {
+        builder.lifecycleOwner?.let { owner ->
+            GpsPermission.requestLocation(builder.context, builder.withBackgroundPermission)
+                .observe(owner) {
+                    if (GpsPermission.checkLocation(builder.context, withBackground = false)) {
+                        if (GpsPermission.isGpsEnabled(builder.context)) {
+                            initGpsTracking()
+                        } else {
+                            turnGPSOn()
                         }
-                } else {
-                    checkPermission()
+                    } else {
+                        isCanceledPermission = true
+
+                        checkPermission()
+                    }
                 }
-            }
         }
     }
 
     private fun checkPermission() {
-        if (!checkLocation(builder.context, false))
+        if (!GpsPermission.checkLocation(builder.context, false))
             builder.onNotAvailable?.invoke()
-        else
+
+        if (!GpsPermission.checkLocation(builder.context, true))
             builder.onBackgroundNotAvailable?.invoke()
     }
 
     private fun turnGPSOn() {
-        if (builder.context == null && requestedSettingPermission)
-            return
-
-        if (isGpsEnabled(builder.context)) {
-            if (!requestedSettingPermission)
-                initLastKnownLocation()
-
-            initGpsTracking()
-        } else if (builder.activity != null && !requestedSettingPermission) {
-            initLastKnownLocation()
-
-            builder.activity?.let {
-                mSettingsClient
-                    .checkLocationSettings(mLocationSettingsRequest)
-                    .addOnSuccessListener(it) {
-                        Handler(Looper.getMainLooper())
-                            .postDelayed({ initGpsTracking() }, 300)
-                    }
-                    .addOnFailureListener(it) { e ->
-                        val statusCode = (e as ApiException).statusCode
-                        if (statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
-                            try {
-                                val rae = e as ResolvableApiException
-                                rae.startResolutionForResult(it, 111)
-                                requestedSettingPermission = true
-                            } catch (ignored: IntentSender.SendIntentException) {
-                            }
+        builder.activity?.let {
+            mSettingsClient
+                .checkLocationSettings(mLocationSettingsRequest)
+                .addOnSuccessListener(it) {
+                    Handler(Looper.getMainLooper())
+                        .postDelayed({ initGpsTracking() }, 300)
+                }
+                .addOnFailureListener(it) { e ->
+                    val statusCode = (e as ApiException).statusCode
+                    if (statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
+                        try {
+                            val rae = e as ResolvableApiException
+                            rae.startResolutionForResult(it, 111)
+                        } catch (ignored: IntentSender.SendIntentException) {
                         }
                     }
-            }
-        } else {
-            builder.onNotAvailable?.invoke()
+                }
         }
     }
 
@@ -172,6 +137,7 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
 
         if (passive != null) {
             GpsManager.location.value = passive
+
             builder.onLastKnownLocation?.invoke(passive.latitude, passive.longitude)
         }
     }
@@ -183,7 +149,7 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
                 if (session?.lastLocation?.latitude != 0.0)
                     return session?.lastLocation
 
-                if (checkLocation(it, false)) {
+                if (GpsPermission.checkLocation(it, false)) {
                     val list = listOf("gps", "passive", "network")
 
                     for (provider in list) {
@@ -208,7 +174,7 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
         try {
             GpsManager.isConnected = true
 
-            if (checkLocation(builder.context, false))
+            if (GpsPermission.checkLocation(builder.context, false))
                 mGoogleApiClient?.let {
                     LocationServices.FusedLocationApi.requestLocationUpdates(
                         it,
@@ -241,6 +207,15 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     fun onResume() {
+        if (builder.onResumeConnect &&
+            GpsPermission.checkFullLocation(builder.context!!, withBackground = false)
+        ) {
+            disconnect()
+            Log.e("onResume",builder.onResumeConnect.toString())
+
+            initGpsTracking()
+        }
+
         try {
             builder.activity?.registerReceiver(
                 gpsReceiver,
@@ -251,17 +226,9 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    fun onPauseDisconnect() {
+    fun onPause() {
         if (builder.onPauseDisconnect) {
             disconnect()
-        }
-    }
-
-    fun disconnect() {
-        if (mGoogleApiClient?.isConnected == true) {
-            mGoogleApiClient?.disconnect()
-
-            GpsManager.isConnected = false
         }
     }
 
@@ -273,9 +240,16 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
         }
     }
 
+    fun disconnect() {
+        mGoogleApiClient?.disconnect()
+
+        GpsManager.isConnected = false
+    }
+
+    @SuppressLint("MissingPermission")
     private fun initGpsTracking() {
         builder.context?.let {
-            if (!checkLocation(it, false)) return
+            if (!GpsPermission.checkLocation(it, false)) return
 
             if (mGoogleApiClient == null)
                 mGoogleApiClient = GoogleApiClient.Builder(it)
@@ -288,4 +262,5 @@ class GpsConfiguration : LifecycleObserver, GoogleApiClient.ConnectionCallbacks,
                 mGoogleApiClient?.connect()
         }
     }
+
 }
