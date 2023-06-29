@@ -12,10 +12,10 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.babayevsemid:Gps-tracker:2.0.2'
+    implementation 'com.github.babayevsemid:Gps-tracker:2.0.4'
     
     //And Play services location
-    implementation 'com.google.android.gms:play-services-location:18.0.0'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
 }
 ```
 
